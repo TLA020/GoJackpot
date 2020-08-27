@@ -31,4 +31,5 @@ func main() {
 func setupRoutes(app *fiber.App) {
 	app.Post("/api/v1/account/register", controllers.CreateAccount)
 	app.Post("/api/v1/account/login", controllers.Authenticate)
+	app.Post("/api/v1/account/test", controllers.Authenticate)
 }
