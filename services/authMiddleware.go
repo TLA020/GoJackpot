@@ -11,7 +11,7 @@ import (
 
 var JwtAuthentication = func(c *fiber.Ctx) {
 
-	allowAnonymous := []string{"/api/v1/account/register", "/api/v1/account/login"}
+	allowAnonymous := []string{"/api/v1/account/register", "/api/v1/account/login", "/"}
 
 	for _, value := range allowAnonymous {
 		if value == c.Path() {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber"
 	"github.com/gofiber/fiber/middleware"
 	"goprac/controllers"
@@ -29,7 +30,10 @@ func main() {
 }
 
 func setupRoutes(app *fiber.App) {
+	app.Get("/", func(c *fiber.Ctx) {
+		msg := fmt.Sprintf("Hello 👋!")
+		c.Send(msg)
+	})
 	app.Post("/api/v1/account/register", controllers.CreateAccount)
 	app.Post("/api/v1/account/login", controllers.Authenticate)
-	app.Post("/api/v1/account/test", controllers.Authenticate)
 }
