@@ -38,7 +38,7 @@ func (account *Account) Validate() (err error) {
 		return
 	}
 
-	if occurrences > 0  {
+	if occurrences > 0 {
 		err = fmt.Errorf("address already in use by another user")
 		return
 	}
@@ -96,4 +96,3 @@ func Login(email, password string) (signedToken string, err error) {
 	signedToken, _ = jwtToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	return
 }
-
