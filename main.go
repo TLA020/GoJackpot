@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber"
 	"github.com/gofiber/fiber/middleware"
+	"github.com/gofiber/template/html"
 	"goprac/controllers"
 	"goprac/services"
 	"log"
@@ -11,7 +11,12 @@ import (
 )
 
 func main() {
-	app := fiber.New()
+	engine := html.New("./views", ".html")
+
+	app := fiber.New(&fiber.Settings{
+		Views: engine,
+	})
+
 	app.Use(services.JwtAuthentication)
 	app.Use(middleware.Logger())
 	setupRoutes(app)
@@ -31,9 +36,9 @@ func main() {
 
 func setupRoutes(app *fiber.App) {
 	app.Get("/", func(c *fiber.Ctx) {
-		msg := fmt.Sprintf("Hello 👋!")
-		c.Send(msg)
+		_ = c.Render("hello-world", fiber.Map{})
 	})
+
 	app.Post("/api/v1/account/register", controllers.CreateAccount)
 	app.Post("/api/v1/account/login", controllers.Authenticate)
 }
