@@ -1,9 +1,9 @@
-package services
+package main
 
 import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber"
-	"goprac/models"
+	 m "goprac/models"
 	"log"
 	"os"
 	"strings"
@@ -36,7 +36,7 @@ var JwtAuthentication = func(c *fiber.Ctx) {
 	}
 
 	tokenPart := tokenParts[1]
-	claimsToken := &models.Token{}
+	claimsToken := &m.Token{}
 
 	token, err := jwt.ParseWithClaims(tokenPart, claimsToken, func(token *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT_SECRET")), nil

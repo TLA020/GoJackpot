@@ -3,17 +3,23 @@ package main
 import (
 	"github.com/gofiber/fiber"
 	"github.com/gofiber/fiber/middleware"
-	"goprac/controllers"
-	"goprac/services"
+	"github.com/gofiber/websocket"
 	"log"
 	"os"
 )
 
 func main() {
 	app := fiber.New()
-
+	app.Use(func(c *fiber.Ctx) {
+		if websocket.IsWebSocketUpgrade(c) {
+			c.Locals("allowed", true)
+		}
+		c.Next()
+	})
 	app.Use(middleware.Logger())
+
 	setupRoutes(app)
+	go handleBroadcasts()
 
 	listenPort := os.Getenv("HTTP_LISTEN_PORT")
 	if len(listenPort) < 1 {
@@ -32,7 +38,11 @@ func setupRoutes(app *fiber.App) {
 	app.Static("/", "./frontend/dist/index.html")
 	app.Static("/static", "./frontend/dist/static")
 
-	app.Use(services.JwtAuthentication)
-	app.Post("/api/v1/account/register", controllers.CreateAccount)
-	app.Post("/api/v1/account/login", controllers.Authenticate)
+	app.Get("/ws/", websocket.New(func(c *websocket.Conn) {
+		wsHandler(c)
+	}))
+
+	app.Use(JwtAuthentication)
+	app.Post("/api/v1/account/register", createAccount)
+	app.Post("/api/v1/account/login", authenticate)
 }
