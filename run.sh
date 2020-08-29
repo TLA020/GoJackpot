@@ -1,1 +1,1 @@
-env `cat .env` go run .
+env `cat .env` /usr/local/go/bin/go run .
