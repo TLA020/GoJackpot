@@ -29,11 +29,11 @@ var authenticate = func(c *fiber.Ctx) {
 		log.Fatal(err)
 	}
 
-	token, err := m.Login(account.Email, account.Password)
+    err := account.Login()
 	if err != nil {
 		c.Status(401).Send(err)
 		return
 	}
 
-	c.Send(token)
+	_ = c.JSON(account)
 }

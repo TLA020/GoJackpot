@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gofiber/cors"
 	"github.com/gofiber/fiber"
 	"github.com/gofiber/fiber/middleware"
 	"github.com/gofiber/websocket"
@@ -13,6 +14,7 @@ var gameManager = NewGameManager()
 
 func main() {
 	app := fiber.New()
+	app.Use(cors.New())
 	app.Use(func(c *fiber.Ctx) {
 		if websocket.IsWebSocketUpgrade(c) {
 			c.Locals("allowed", true)
@@ -24,8 +26,8 @@ func main() {
 	setupRoutes(app)
 	go handleBroadcasts()
 
-	gameManager.NewGame()
-	go handleGameEvents()
+	//gameManager.NewGame()
+	//go handleGameEvents()
 
 	listenPort := os.Getenv("HTTP_LISTEN_PORT")
 	if len(listenPort) < 1 {
@@ -51,6 +53,6 @@ func setupRoutes(app *fiber.App) {
 	}))
 
 	app.Use(JwtAuthentication)
-	app.Post("/api/v1/account/register", createAccount)
-	app.Post("/api/v1/account/login", authenticate)
+	app.Post("/api/v1/accounts/register", createAccount)
+	app.Post("/api/v1/accounts/login", authenticate)
 }

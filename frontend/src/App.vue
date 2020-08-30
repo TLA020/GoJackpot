@@ -126,9 +126,6 @@
 
 <script>
   export default {
-    props: {
-      source: String,
-    },
     data: () => ({
       dialog: false,
       drawer: null,
@@ -137,6 +134,7 @@
         { icon: 'mdi-cog', text: 'Settings' },
         { icon: 'mdi-help-circle', text: 'Help' },
       ],
+      source: {}
     }),
   }
 </script>

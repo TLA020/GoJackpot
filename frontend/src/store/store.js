@@ -5,8 +5,11 @@ import AuthStore from "./modules/auth";
 
 Vue.use(Vuex);
 
-export default ({
+export default new Vuex.Store({
   strict: true,
+  state: {},
+  mutations: {},
+  actions: {},
   modules: {
     auth: AuthStore,
   }

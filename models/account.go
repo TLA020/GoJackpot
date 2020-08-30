@@ -5,7 +5,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
-	"log"
 	"os"
 	"strings"
 )
@@ -75,25 +74,28 @@ func (account *Account) Create() (err error) {
 	return
 }
 
-func Login(email, password string) (signedToken string, err error) {
-	log.Printf("Login")
-	account := &Account{}
-	err = GetDB().Table("accounts").Where("email = ?", email).First(account).Error
+func (account *Account) Login() (err error) {
+	var dbAccount = &Account{}
+
+	err = GetDB().Table("accounts").Where("email = ?", account.Email).First(dbAccount).Error
 	if err != nil {
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(dbAccount.Password), []byte(account.Password))
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 		err = fmt.Errorf("error password miss match")
 	}
 
+	//Create JWT token
+	token := &Token{UserId: dbAccount.ID}
+	jwtToken := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), token)
+	signedToken, _ := jwtToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	// don't expose password
 	account.Password = ""
-
-	//Create JWT token
-	token := &Token{UserId: account.ID}
-	jwtToken := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), token)
-	signedToken, _ = jwtToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	account.Token = signedToken
+	account.CreatedAt = dbAccount.CreatedAt
+	account.UpdatedAt = dbAccount.UpdatedAt
+	account.ID = dbAccount.ID
 	return
 }
