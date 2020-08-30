@@ -11,13 +11,13 @@ var GlobalGameManger *GameManager
 var gameDuration = 60
 
 type Game struct {
-	ID         int64               `json:"id"`
-	NewTime    time.Time           `json:"new_time,omitempty"`
-	StartTime  time.Time           `json:"start_time,omitempty"`
-	EndTime    time.Time           `json:"end_time,omitempty"`
-	Duration   int                 `json:"duration"`
-	Bets      map[uint]UserBet	    `json:"bets"`
-	itemsMutex *sync.Mutex `json:"lik"`
+	ID         	int64               `json:"id"`
+	NewTime    	time.Time           `json:"new_time,omitempty"`
+	StartTime  	time.Time           `json:"start_time,omitempty"`
+	EndTime    	time.Time           `json:"end_time,omitempty"`
+	Duration   	int                 `json:"duration"`
+	Bets        map[uint]UserBet	 `json:"bets"`
+	itemsMutex 	*sync.Mutex
 }
 
 type UserBet struct {
