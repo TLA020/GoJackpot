@@ -10,11 +10,12 @@ import (
 	"strings"
 )
 
+// GORM defined a gorm.Model struct, which includes fields ID, CreatedAt, UpdatedAt, DeletedAt
 type Account struct {
 	gorm.Model
 	Email    string `json:"email"`
 	Password string `json:"password"`
-	Token    string `json:"token";sql:"-"`
+	Token    string `json:"token" sql:"-"`
 }
 
 func (account *Account) Validate() (err error) {

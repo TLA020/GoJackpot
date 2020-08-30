@@ -4,9 +4,11 @@ import (
 	"github.com/gofiber/fiber"
 	"github.com/gofiber/fiber/middleware"
 	"github.com/gofiber/websocket"
+	 m "goprac/models"
 	"log"
 	"os"
 )
+
 
 func main() {
 	app := fiber.New()
@@ -20,6 +22,7 @@ func main() {
 
 	setupRoutes(app)
 	go handleBroadcasts()
+	m.GlobalGameManger = m.NewGameManager()
 
 	listenPort := os.Getenv("HTTP_LISTEN_PORT")
 	if len(listenPort) < 1 {
