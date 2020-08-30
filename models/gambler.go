@@ -2,7 +2,7 @@ package models
 
 type Gambler struct {
 	Account  Account	`json:"Account"`
-	Conn    *Connection	`json:"-"`
+	Conn    *Connection
 }
 
 func NewUser(account Account,  conn *Connection) *Gambler {

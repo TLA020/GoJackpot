@@ -17,7 +17,7 @@ type Game struct {
 	EndTime    time.Time           `json:"end_time,omitempty"`
 	Duration   int                 `json:"duration"`
 	Bets      map[uint]UserBet	    `json:"bets"`
-	itemsMutex *sync.Mutex
+	itemsMutex *sync.Mutex `json:"lik"`
 }
 
 type UserBet struct {
