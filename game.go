@@ -1,13 +1,13 @@
-package models
+package main
 
 import (
+	m "goprac/models"
 	"log"
 	"math/rand"
 	"sync"
 	"time"
 )
 
-var GlobalGameManger *GameManager
 var gameDuration = 60
 
 type Game struct {
@@ -20,33 +20,16 @@ type Game struct {
 	itemsMutex 	*sync.Mutex
 }
 
-type UserBet struct {
-	Gambler  *Gambler
-	Amount float64
-}
-
-type NewGameEvent struct {
-	Game Game
-}
-
-type StartGameEvent struct {
-	Game Game
-}
-
-type EndGameEvent struct {
-	Game Game
-}
-
-type NewBetEvent struct {
-	Game  Game
-	Bet	UserBet
-}
-
 type GameManager struct {
 	mutex       sync.Mutex
 	pastGames   map[int64]Game
 	currentGame Game
 	events      chan interface{}
+}
+
+type UserBet struct {
+	Gambler  *m.Gambler
+	Amount float64
 }
 
 func NewGameManager() *GameManager {
@@ -74,17 +57,19 @@ func (gm *GameManager) NewGame() {
 		itemsMutex: &sync.Mutex{},
 		Bets:      make(map[uint]UserBet),
 	}
+
 	gm.currentGame = newGame
 
 	gm.mutex.Unlock()
 
-	// Fire event
+	//Fire event
 	gm.events <- NewGameEvent{
 		Game: newGame,
 	}
 
-	log.Println("New game")
-	log.Println("Waiting for bets..")
+
+	log.Println("New game started")
+	log.Println("Waiting for bets from at least 2 ppl..")
 
 	time.Sleep(time.Second * time.Duration(gameDuration))
 }
@@ -97,6 +82,7 @@ func (gm *GameManager) GetCurrentGame() *Game {
 }
 
 func (gm *GameManager) StartGame() {
+	log.Printf("start game")
 	gm.mutex.Lock()
 	gm.currentGame.StartTime = time.Now()
 
@@ -135,7 +121,7 @@ func (gm *GameManager) EndGame() {
 	gm.NewGame()
 }
 
-func (g *Game) PlaceBet(gambler *Gambler, bet UserBet) {
+func (g *Game) PlaceBet(gambler *m.Gambler, bet UserBet) {
 	log.Printf("Placing ($ %f)bet for: %d ", bet.Amount, gambler.Account.ID)
 	g.itemsMutex.Lock()
 	defer g.itemsMutex.Unlock()
@@ -150,7 +136,7 @@ func (g *Game) PlaceBet(gambler *Gambler, bet UserBet) {
 	userBet.Amount = userBet.Amount + bet.Amount
 	g.Bets[gambler.Account.ID] = userBet
 
-	GlobalGameManger.events <- NewBetEvent{
+	gameManager.events <- NewBetEvent{
 		Game:  *g,
 		Bet: userBet ,
 	}
@@ -165,7 +151,7 @@ func (g Game) GetTotalPrice() (totalPrice float64) {
 	return totalPrice
 }
 
-func (g *Game) GetWinner() *Gambler	{
+func (g *Game) GetWinner() *m.Gambler	{
 
 	totalPricePerUser := make(map[uint]float64)
 	var totalPrice float64
@@ -199,5 +185,5 @@ func (g *Game) GetWinner() *Gambler	{
 	log.Printf("Winner: %v", pool[randomInt])
 
 
-	return &Gambler{}
+	return &m.Gambler{}
 }

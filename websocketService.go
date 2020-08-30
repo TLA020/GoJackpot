@@ -31,9 +31,7 @@ func listener(conn *m.Connection) {
 	for {
 		_, message, err := conn.Conn.ReadMessage()
 		if err != nil {
-			// Close readchan
 			close(conn.ReadChan)
-
 			log.Printf("Error: %s", err)
 			// user disconnected or something else went wrong, delete from connections.
 			for i, c := range connections {
@@ -67,4 +65,8 @@ func handleBroadcasts() {
 			}
 		}
 	}
+}
+
+func SendBroadcast(msg m.Message) {
+	broadcastChan <- msg
 }

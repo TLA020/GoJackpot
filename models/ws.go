@@ -18,9 +18,10 @@ type Message struct {
 	Data map[string]interface{} `json:"data"`
 }
 
-func newMessage(name string, data map[string]interface{}) Message {
+func NewMessage(name string, data map[string]interface{}) Message {
 	return Message{
 		Name: name,
 		Data: data,
 	}
 }
+

@@ -4,11 +4,12 @@ import (
 	"github.com/gofiber/fiber"
 	"github.com/gofiber/fiber/middleware"
 	"github.com/gofiber/websocket"
-	 m "goprac/models"
 	"log"
 	"os"
 )
 
+var stopChan = make(chan bool)
+var gameManager = NewGameManager()
 
 func main() {
 	app := fiber.New()
@@ -22,7 +23,9 @@ func main() {
 
 	setupRoutes(app)
 	go handleBroadcasts()
-	m.GlobalGameManger = m.NewGameManager()
+
+	gameManager.NewGame()
+	go handleGameEvents()
 
 	listenPort := os.Getenv("HTTP_LISTEN_PORT")
 	if len(listenPort) < 1 {
@@ -35,6 +38,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	stopChan <- true
 }
 
 func setupRoutes(app *fiber.App) {
