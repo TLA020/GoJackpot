@@ -43,7 +43,7 @@ var signUp = func (c *fiber.Ctx){
 	}
 
 	// don't expose password
-	account.Password = ""
+	account.Password = "SECRET"
 	account.Token = token
 
 	if err := c.JSON(account); err != nil {
@@ -84,6 +84,7 @@ var signIn = func(c *fiber.Ctx) {
 	}
 
 	dbAccount.Token = token
+	dbAccount.Password = "SECRET"
 	if err := c.JSON(dbAccount); err != nil {
 		log.Print(err)
 	}
