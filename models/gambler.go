@@ -5,7 +5,7 @@ type Gambler struct {
 	Conn    *Connection
 }
 
-func NewUser(account Account,  conn *Connection) *Gambler {
+func NewGambler(account Account,  conn *Connection) *Gambler {
 	return &Gambler{
 		Account: account,
 		Conn: conn,

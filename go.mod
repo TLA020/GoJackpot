@@ -6,6 +6,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gofiber/cors v0.2.2
 	github.com/gofiber/fiber v1.14.4
+	github.com/gofiber/jwt v0.2.0
 	github.com/gofiber/template v1.5.5 // indirect
 	github.com/gofiber/websocket v0.5.1
 	github.com/gorilla/mux v1.8.0 // indirect

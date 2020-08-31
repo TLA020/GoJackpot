@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/cors"
 	"github.com/gofiber/fiber"
 	"github.com/gofiber/fiber/middleware"
+	jwtware "github.com/gofiber/jwt"
 	"github.com/gofiber/websocket"
 	"log"
 	"os"
@@ -21,6 +22,8 @@ func main() {
 		}
 		c.Next()
 	})
+
+
 	app.Use(middleware.Logger())
 
 	setupRoutes(app)
@@ -52,7 +55,11 @@ func setupRoutes(app *fiber.App) {
 		wsHandler(c)
 	}))
 
-	app.Use(JwtAuthentication)
-	app.Post("/api/v1/accounts/register", createAccount)
-	app.Post("/api/v1/accounts/login", authenticate)
+	app.Post("/api/v1/accounts/register", signUp)
+	app.Post("/api/v1/accounts/login", signIn)
+
+	// after this middleware only authorized routes.
+	app.Use(jwtware.New(jwtware.Config{
+		SigningKey: []byte(os.Getenv("JWT_SECRET")),
+	}))
 }

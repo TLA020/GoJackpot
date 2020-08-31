@@ -1,39 +1,103 @@
 package main
 
 import (
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber"
+	"golang.org/x/crypto/bcrypt"
 	m "goprac/models"
 	"log"
+	"os"
+	"time"
 )
 
-var createAccount = func(c *fiber.Ctx) {
+var signUp = func (c *fiber.Ctx){
 	account := &m.Account{}
 
 	if err := c.BodyParser(account); err != nil {
 		log.Fatal(err)
 	}
 
-	err := account.Create()
-	if err != nil {
-		c.Status(401).Send(err)
+	if err := account.Validate(); err != nil {
+		log.Print(err)
+		c.SendStatus(fiber.StatusBadRequest)
+		c.Send(err)
 		return
 	}
 
-	_ = c.JSON(account)
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(account.Password), bcrypt.DefaultCost)
+	account.Password = string(hashedPassword)
+
+	m.GetDB().Create(account)
+
+	if account.ID <= 0 {
+		c.SendStatus(fiber.StatusBadRequest)
+		return
+	}
+
+	//Create new JWT token for the newly registered account
+	token, err := createTokenByAccount(account)
+	if err != nil {
+		log.Print(err)
+		c.SendStatus(fiber.StatusInternalServerError)
+		return
+	}
+
+	// don't expose password
+	account.Password = ""
+	account.Token = token
+
+	if err := c.JSON(account); err != nil {
+		log.Print(err)
+	}
 }
 
-var authenticate = func(c *fiber.Ctx) {
+var signIn = func(c *fiber.Ctx) {
 	account := &m.Account{}
+	dbAccount := &m.Account{}
 
 	if err := c.BodyParser(account); err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		c.SendStatus(fiber.StatusBadRequest)
+		return
 	}
-
-    err := account.Login()
-	if err != nil {
-		c.Status(401).Send(err)
+	// lookup account in db
+	if err := m.GetDB().Table("accounts").Where("email = ?", account.Email).First(dbAccount).Error; err != nil {
+		log.Print(err)
+		c.SendStatus(fiber.StatusUnauthorized)
+		c.Send("looks like this account doesn't exist")
 		return
 	}
 
-	_ = c.JSON(account)
+	// compare encrypted passwords
+	if err := bcrypt.CompareHashAndPassword([]byte(dbAccount.Password), []byte(account.Password)); err != nil {
+		log.Print("passwords don't match")
+		c.SendStatus(fiber.StatusUnauthorized)
+		c.Send("credentials invalid")
+		return
+	}
+
+
+	token, err := createTokenByAccount(dbAccount)
+	if err != nil {
+		c.SendStatus(fiber.StatusInternalServerError)
+		return
+	}
+
+	dbAccount.Token = token
+	if err := c.JSON(dbAccount); err != nil {
+		log.Print(err)
+	}
+}
+
+func createTokenByAccount(acc *m.Account) (signedToken string, err error) {
+	// Generate/Sign encoded JWT token
+	token := jwt.New(jwt.SigningMethodHS256)
+	claims := token.Claims.(jwt.MapClaims)
+	claims["email"] = acc.Email
+	claims["sub"] = acc.ID
+	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+
+	// Generate encoded token (sign)
+	signedToken, err = token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	return
 }

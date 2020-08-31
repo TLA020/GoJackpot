@@ -5,8 +5,9 @@ import "github.com/dgrijalva/jwt-go"
 /*
 JWT claims struct
 */
-type Token struct {
+type Claims struct {
 	UserId   uint
 	Username string
 	jwt.StandardClaims
 }
+
