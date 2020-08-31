@@ -97,7 +97,11 @@ func createTokenByAccount(acc *m.Account) (signedToken string, err error) {
 	claims["sub"] = acc.ID
 	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
 
+ 	secret := os.Getenv("JWT_SECRET")
+ 	if secret == "" {
+		secret = "secret"
+	}
 	// Generate encoded token (sign)
-	signedToken, err = token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	signedToken, err = token.SignedString([]byte(secret))
 	return
 }
