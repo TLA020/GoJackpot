@@ -68,7 +68,7 @@
   export default {
     name: "Signin",
     computed: {
-      ...mapState("auth", ["error", "loading"])
+      ...mapState("$auth", ["error", "loading"])
     },
     data() {
       return {
@@ -88,7 +88,7 @@
     methods: {
       submit(action) {
         if (this.$refs.form.validate()) {
-          this.$store.dispatch(`auth/${action}`, {
+          this.$store.dispatch(`$auth/${action}`, {
             email: this.email,
             password: this.password
           });

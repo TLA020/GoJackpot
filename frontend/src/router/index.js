@@ -2,7 +2,7 @@ import Vue from "vue";
 import Router from "vue-router";
 import Home from "../views/Home";
 import Auth from "../views/Auth";
-import store from '../store/store'
+import store from '../store'
 
 Vue.use(Router);
 
@@ -29,7 +29,7 @@ const router = new Router({
 
 router.beforeEach((to, from, next) => {
   if (to.matched.some(record => record.meta.authRequired)) {
-    if (!store.state.auth.user) {
+    if (!store.state.$auth.user) {
       console.log('push auth')
       next({ path: "/auth" });
     } else {

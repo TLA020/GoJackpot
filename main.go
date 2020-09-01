@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/cors"
 	"github.com/gofiber/fiber"
 	"github.com/gofiber/fiber/middleware"
@@ -22,7 +23,6 @@ func main() {
 		}
 		c.Next()
 	})
-
 
 	app.Use(middleware.Logger())
 
@@ -59,7 +59,20 @@ func setupRoutes(app *fiber.App) {
 	app.Post("/api/v1/accounts/login", signIn)
 
 	// after this middleware only authorized routes.
-	app.Use(jwtware.New(jwtware.Config{
-		SigningKey: []byte(os.Getenv("JWT_SECRET")),
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		secret = "secret"
+	}
+
+	app.Use(jwtware.New(jwtware.Config {
+		SigningKey: []byte(secret),
 	}))
+
+
+	app.Get("/restricted", func(c *fiber.Ctx) {
+		// test endpoint
+		user := c.Locals("user").(*jwt.Token)
+		claims := user.Claims.(jwt.MapClaims)
+		_ =c.JSON(claims)
+	})
 }

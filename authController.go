@@ -106,3 +106,5 @@ func createTokenByAccount(acc *m.Account) (signedToken string, err error) {
 	signedToken, err = token.SignedString([]byte(secret))
 	return
 }
+
+

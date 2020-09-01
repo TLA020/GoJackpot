@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/gofiber/websocket"
+	"github.com/mitchellh/mapstructure"
 	m "goprac/models"
 	"log"
 	"sync"
@@ -14,16 +15,16 @@ var connections = make([]*m.Connection, 0)
 var broadcastChan = make(chan m.Message)
 
 func wsHandler(c *websocket.Conn) {
+	log.Printf("wsHandler")
 	connectionsMutex.Lock()
 
 	var newConnection = &m.Connection{
 		Conn:     c,
-		ReadChan: make(chan m.Message),
 	}
 
 	connections = append(connections, newConnection)
 	connectionsMutex.Unlock()
-
+	_ = newConnection.Conn.WriteMessage(websocket.TextMessage, []byte("welcome"))
 	listener(newConnection)
 }
 
@@ -31,7 +32,7 @@ func listener(conn *m.Connection) {
 	for {
 		_, message, err := conn.Conn.ReadMessage()
 		if err != nil {
-			close(conn.ReadChan)
+		//	close(conn.ReadChan)
 			log.Printf("Error: %s", err)
 			// user disconnected or something else went wrong, delete from connections.
 			for i, c := range connections {
@@ -51,8 +52,35 @@ func listener(conn *m.Connection) {
 			continue
 		}
 
-		log.Printf("..::SOCKETS:: Message: %s", message)
+		log.Printf("Incoming websocket message: %s", msg.Name)
+
+		switch msg.Name {
+		case "auth":
+			onAuthorizeWsClient(msg, conn)
+		default:
+			log.Printf("default")
+		}
+
+
 	}
+}
+
+func onAuthorizeWsClient(msg m.Message, conn *m.Connection) {
+	acc := &m.Account{}
+	log.Print("Websocket client wants to authorize by token")
+
+	if err := mapstructure.Decode(msg.Data, &acc); err != nil {
+		log.Print(err)
+		return
+	}
+
+	 claims, err := m.ValidateToken(acc.Token)
+	 if err != nil {
+		    log.Print(err)
+	 }
+
+	 conn.UserId = int(claims["sub"].(float64))
+	 log.Printf("Connection now belongs to userId: %v", conn.UserId)
 }
 
 func handleBroadcasts() {
