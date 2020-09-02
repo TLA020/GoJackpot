@@ -45,7 +45,6 @@ func (gm *GameManager) Events() chan interface{} {
 
 func (gm *GameManager) NewGame() {
 	gm.mutex.Lock()
-	log.Print("new-game")
 	now := time.Now()
 	gameID := now.UnixNano()
 

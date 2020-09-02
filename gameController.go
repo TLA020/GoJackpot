@@ -4,7 +4,6 @@ import (
 	"github.com/gofiber/fiber"
 	m "goprac/models"
 	"math/rand"
-	"time"
 )
 
 var testGame = func(c *fiber.Ctx) {
@@ -18,11 +17,11 @@ func launchTestGame() {
 	fakeBetByUserId(player1Id)
 	fakeBetByUserId(player2Id)
 
-	time.Sleep(time.Second * 5)
-	fakeBetByUserId(player2Id)
-
-	time.Sleep(time.Second * 10)
-	fakeBetByUserId(player1Id)
+	//time.Sleep(time.Second * 5)
+	//fakeBetByUserId(player2Id)
+	//
+	//time.Sleep(time.Second * 10)
+	//fakeBetByUserId(player1Id)
 }
 
 // faking users/bets to speed up test process.
