@@ -110,7 +110,7 @@ func (gm *GameManager) EndGame() {
 
 	gm.mutex.Unlock()
 
-	log.Print("[GAME] ended")
+	log.Print("[GAME] Has ended, no more bets!")
 	winner := gm.currentGame.GetWinner()
 	log.Print(winner)
 
@@ -121,7 +121,7 @@ func (gm *GameManager) EndGame() {
 }
 
 func (g *Game) PlaceBet(gambler *m.Gambler, bet Bet) {
-	log.Printf("[GAME] Placing ($ %f)bet for: %d ", bet.Amount, gambler.Conn.UserId)
+	log.Printf("[GAME] Placing ($ %f)bet for userId: %d ", bet.Amount, gambler.Conn.UserId)
 	g.itemsMutex.Lock()
 
 
@@ -140,7 +140,7 @@ func (g *Game) PlaceBet(gambler *m.Gambler, bet Bet) {
 	//}
 	g.itemsMutex.Unlock()
 	if g.StartTime.IsZero() && len(g.Bets) >= 2 {
-		log.Print("[GAME] enough players starting game...")
+		log.Print("[GAME] Enough players starting game...")
 		gameManager.StartGame()
 	}
 
@@ -156,7 +156,7 @@ func (g Game) GetTotalPrice() (totalPrice float64) {
 
 func (g *Game) GetWinner() *m.Gambler {
 
-	log.Print("[GAME] picking a winner..")
+	log.Print("[GAME] picking a winner...")
 	totalPricePerUser := make(map[int]float64)
 	var totalPrice float64
 
@@ -184,7 +184,7 @@ func (g *Game) GetWinner() *m.Gambler {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	randomInt := r.Intn(100)
 
-	log.Printf("[GAME] Winner: %v", pool[randomInt])
+	log.Printf("[GAME] Winner userId: %v", pool[randomInt])
 	log.Printf("....::::....::::....::::....::::....")
 
 	return &m.Gambler{}
