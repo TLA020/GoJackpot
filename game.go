@@ -80,7 +80,6 @@ func (gm *GameManager) GetCurrentGame() *Game {
 }
 
 func (gm *GameManager) StartGame() {
-	log.Printf("start game")
 	gm.mutex.Lock()
 	gm.currentGame.StartTime = time.Now()
 
@@ -90,10 +89,10 @@ func (gm *GameManager) StartGame() {
 
 	gm.mutex.Unlock()
 
-	log.Println("[GAME] Bets are placed, starting game..")
+	log.Println("[GAME] Game Started")
 
 	defer func() {
-		log.Println("30 seconds starting now")
+		log.Println("[GAME] 30 seconds left...")
 		time.Sleep(time.Second * 30)
 		gm.EndGame()
 	}()
@@ -111,7 +110,7 @@ func (gm *GameManager) EndGame() {
 
 	gm.mutex.Unlock()
 
-	log.Print("[GAME] ended, getting winner")
+	log.Print("[GAME] ended")
 	winner := gm.currentGame.GetWinner()
 	log.Print(winner)
 
@@ -157,7 +156,7 @@ func (g Game) GetTotalPrice() (totalPrice float64) {
 
 func (g *Game) GetWinner() *m.Gambler {
 
-	log.Print("Get winner")
+	log.Print("[GAME] picking a winner..")
 	totalPricePerUser := make(map[int]float64)
 	var totalPrice float64
 
