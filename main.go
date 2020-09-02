@@ -56,7 +56,7 @@ func setupRoutes(app *fiber.App) {
 
 	app.Post("/api/v1/accounts/register", signUp)
 	app.Post("/api/v1/accounts/login", signIn)
-	app.Get("/api/v1/game/test", testGame)
+	app.Post("/api/v1/game/test/bets/random", testGame)
 	// after this middleware only authorized routes.
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {

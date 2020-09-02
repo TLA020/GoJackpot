@@ -110,19 +110,13 @@ func (gm *GameManager) EndGame() {
 	gm.mutex.Unlock()
 
 	log.Print("[GAME] Has ended, no more bets!")
-	winner := gm.currentGame.GetWinner()
-	log.Print(winner)
-
-	//log.Println("Game is ended, winner is...")
-	//log.Println("Starting next game..")
-	// Create new game
+	_ = gm.currentGame.GetWinner()
 	gm.NewGame()
 }
 
 func (g *Game) PlaceBet(gambler *m.Gambler, bet Bet) {
-	log.Printf("[GAME] Placing ($ %f)bet for userId: %d ", bet.Amount, gambler.Conn.UserId)
+	log.Printf("[GAME] NEW BET:($%.2f) FROM => UserId: %d ", bet.Amount, gambler.Conn.UserId)
 	g.itemsMutex.Lock()
-
 
 	// lookup current user bet if exist.
 	userBet, found := g.Bets[gambler.Conn.UserId]
@@ -137,13 +131,14 @@ func (g *Game) PlaceBet(gambler *m.Gambler, bet Bet) {
 		Game: *g,
 		Bet:  userBet,
 	}
+
+	log.Printf("[GAME] TOTAL BETS:($%.2f) ", g.GetTotalPrice())
 	g.itemsMutex.Unlock()
+
 	if g.StartTime.IsZero() && len(g.Bets) >= 2 {
 		log.Print("[GAME] Enough players starting game...")
 		gameManager.StartGame()
 	}
-
-	log.Printf("[GAME] Total in pot:  %f", g.GetTotalPrice())
 }
 
 func (g Game) GetTotalPrice() (totalPrice float64) {
@@ -153,20 +148,20 @@ func (g Game) GetTotalPrice() (totalPrice float64) {
 	return totalPrice
 }
 
-func (g *Game) GetWinner() *m.Gambler {
+func (g *Game) GetWinner() *int {
 
 	log.Print("[GAME] picking a winner...")
 	totalPricePerUser := make(map[int]float64)
 	var totalPrice float64
 
 	g.itemsMutex.Lock()
-	//defer g.itemsMutex.Unlock()
+	defer g.itemsMutex.Unlock()
 	for i, bet := range g.Bets {
 		totalPrice = totalPrice + bet.Amount
 		totalPricePerUser[i] = totalPricePerUser[i] + bet.Amount
 	}
 
-	log.Printf("[GAME] Total price: %f", totalPrice)
+	log.Printf("[GAME] Total price: %.2f", totalPrice)
 	//log.Print(totalPricePerUser)
 
 	// Fill pool
@@ -184,7 +179,7 @@ func (g *Game) GetWinner() *m.Gambler {
 	randomInt := r.Intn(100)
 
 	log.Printf("[GAME] Winner userId: %v", pool[randomInt])
-	log.Printf("....::::....::::....::::....::::....")
+	log.Printf("====================================")
 
-	return &m.Gambler{}
+	return &pool[randomInt]
 }
