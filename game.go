@@ -61,9 +61,9 @@ func (gm *GameManager) NewGame() {
 	gm.mutex.Unlock()
 
 	//Fire event
-	//gm.events <- NewGameEvent{
-	//	Game: newGame,
-	//}
+	gm.events <- NewGameEvent{
+		Game: newGame,
+	}
 
 	log.Println("[GAME] New game started")
 	log.Println("[GAME] Waiting for bets from at least 2 ppl..")
@@ -82,9 +82,9 @@ func (gm *GameManager) StartGame() {
 	gm.mutex.Lock()
 	gm.currentGame.StartTime = time.Now()
 
-	//gm.events <- StartGameEvent{
-	//	Game: gm.currentGame,
-	//}
+	gm.events <- StartGameEvent{
+		Game: gm.currentGame,
+	}
 
 	gm.mutex.Unlock()
 
@@ -103,9 +103,9 @@ func (gm *GameManager) EndGame() {
 	gm.currentGame.EndTime = time.Now()
 	gm.pastGames[gm.currentGame.ID] = gm.currentGame
 
-	//gm.events <- EndGameEvent{
-	//	Game: gm.currentGame,
-	//}
+	gm.events <- EndGameEvent{
+		Game: gm.currentGame,
+	}
 
 	gm.mutex.Unlock()
 
@@ -133,10 +133,10 @@ func (g *Game) PlaceBet(gambler *m.Gambler, bet Bet) {
 	userBet.Amount = userBet.Amount + bet.Amount
 	g.Bets[gambler.Conn.UserId] = userBet
 
-	//gameManager.events <- NewBetEvent{
-	//	Game: *g,
-	//	Bet:  userBet,
-	//}
+	gameManager.events <- NewBetEvent{
+		Game: *g,
+		Bet:  userBet,
+	}
 	g.itemsMutex.Unlock()
 	if g.StartTime.IsZero() && len(g.Bets) >= 2 {
 		log.Print("[GAME] Enough players starting game...")
@@ -159,7 +159,7 @@ func (g *Game) GetWinner() *m.Gambler {
 	totalPricePerUser := make(map[int]float64)
 	var totalPrice float64
 
-	//g.itemsMutex.Lock()
+	g.itemsMutex.Lock()
 	//defer g.itemsMutex.Unlock()
 	for i, bet := range g.Bets {
 		totalPrice = totalPrice + bet.Amount
