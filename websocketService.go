@@ -15,11 +15,11 @@ var connections = make([]*m.Connection, 0)
 var broadcastChan = make(chan m.Message)
 
 func wsHandler(c *websocket.Conn) {
-	log.Printf("wsHandler")
+	log.Printf("[WS] New connection")
 	connectionsMutex.Lock()
 
 	var newConnection = &m.Connection{
-		Conn:     c,
+		Conn: c,
 	}
 
 	connections = append(connections, newConnection)
@@ -32,7 +32,7 @@ func listener(conn *m.Connection) {
 	for {
 		_, message, err := conn.Conn.ReadMessage()
 		if err != nil {
-		//	close(conn.ReadChan)
+			//	close(conn.ReadChan)
 			log.Printf("Error: %s", err)
 			// user disconnected or something else went wrong, delete from connections.
 			for i, c := range connections {
@@ -57,30 +57,39 @@ func listener(conn *m.Connection) {
 		switch msg.Name {
 		case "auth":
 			onAuthorizeWsClient(msg, conn)
+		case "place-bet":
+			onBetPlaced(msg, conn)
 		default:
 			log.Printf("default")
 		}
 
-
 	}
 }
 
+func onBetPlaced(msg m.Message, conn *m.Connection) {
+	amount := msg.Data["amount"].(float64)
+	gambler := &m.Gambler{Conn: conn}
+	gameManager.GetCurrentGame().PlaceBet(gambler, Bet{Amount: amount})
+}
+
+
+
 func onAuthorizeWsClient(msg m.Message, conn *m.Connection) {
 	acc := &m.Account{}
-	log.Print("Websocket client wants to authorize by token")
+	log.Print("[WS] client wants to authorize by token")
 
 	if err := mapstructure.Decode(msg.Data, &acc); err != nil {
 		log.Print(err)
 		return
 	}
 
-	 claims, err := m.ValidateToken(acc.Token)
-	 if err != nil {
-		    log.Print(err)
-	 }
+	claims, err := m.ValidateToken(acc.Token)
+	if err != nil {
+		log.Print(err)
+	}
 
-	 conn.UserId = int(claims["sub"].(float64))
-	 log.Printf("Connection now belongs to userId: %v", conn.UserId)
+	conn.UserId = int(claims["sub"].(float64))
+	log.Printf("[WS] Connection now belongs to userId: %v", conn.UserId)
 }
 
 func handleBroadcasts() {

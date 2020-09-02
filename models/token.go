@@ -14,9 +14,7 @@ type Claims struct {
 	Email string
 }
 
-
-
-func ValidateToken(token string)  (claims jwt.MapClaims, err error) {
+func ValidateToken(token string) (claims jwt.MapClaims, err error) {
 	secret := os.Getenv("token_password")
 	if secret == "" {
 		secret = "secret"
@@ -27,7 +25,7 @@ func ValidateToken(token string)  (claims jwt.MapClaims, err error) {
 	})
 
 	if err == nil {
-		log.Print("token valid")
+		log.Print("[AUTH] token valid")
 	}
 	return
 }

@@ -5,8 +5,8 @@ import (
 )
 
 type Connection struct {
-	Conn     *websocket.Conn
-	UserId 	 int
+	Conn   *websocket.Conn
+	UserId int
 }
 
 func (c *Connection) SendMessage(msg interface{}) error {
@@ -19,7 +19,7 @@ type Message struct {
 }
 
 type WsAuthEvent struct {
-	Name string `json:"name"`
+	Name string  `json:"name"`
 	Data Account `json:"data"`
 }
 
@@ -29,4 +29,3 @@ func NewMessage(name string, data map[string]interface{}) Message {
 		Data: data,
 	}
 }
-

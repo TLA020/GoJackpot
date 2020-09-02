@@ -29,15 +29,14 @@ func main() {
 	setupRoutes(app)
 	go handleBroadcasts()
 
-	//gameManager.NewGame()
-	//go handleGameEvents()
-
 	listenPort := os.Getenv("HTTP_LISTEN_PORT")
 	if len(listenPort) < 1 {
 		listenPort = "5001"
 	}
 
 	log.Printf("Starting HTTP-server on port %s", listenPort)
+	// handleGameEvents()
+	 gameManager.NewGame()
 
 	err := app.Listen(listenPort)
 	if err != nil {
@@ -57,22 +56,21 @@ func setupRoutes(app *fiber.App) {
 
 	app.Post("/api/v1/accounts/register", signUp)
 	app.Post("/api/v1/accounts/login", signIn)
-
+	app.Get("/api/v1/game/test", testGame)
 	// after this middleware only authorized routes.
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		secret = "secret"
 	}
 
-	app.Use(jwtware.New(jwtware.Config {
+	app.Use(jwtware.New(jwtware.Config{
 		SigningKey: []byte(secret),
 	}))
-
 
 	app.Get("/restricted", func(c *fiber.Ctx) {
 		// test endpoint
 		user := c.Locals("user").(*jwt.Token)
 		claims := user.Claims.(jwt.MapClaims)
-		_ =c.JSON(claims)
+		_ = c.JSON(claims)
 	})
 }

@@ -15,14 +15,14 @@ func init() {
 		dbLocation = "./database/database.db"
 	}
 
-	log.Printf("Attempting to connect with Database")
+	log.Printf("[DB] Attempting to connect")
 	db, err := gorm.Open("sqlite3", dbLocation)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("Database Connection Established")
+	log.Printf("[DB] Connection Established")
 
 	db.Debug().AutoMigrate(&Account{})
 
@@ -31,6 +31,5 @@ func init() {
 
 //returns a handle to the DB object
 func GetDB() *gorm.DB {
-	log.Printf("GetDB triggered.")
 	return conn
 }

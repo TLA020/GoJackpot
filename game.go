@@ -11,13 +11,13 @@ import (
 var gameDuration = 60
 
 type Game struct {
-	ID         	int64               `json:"id"`
-	NewTime    	time.Time           `json:"new_time,omitempty"`
-	StartTime  	time.Time           `json:"start_time,omitempty"`
-	EndTime    	time.Time           `json:"end_time,omitempty"`
-	Duration   	int                 `json:"duration"`
-	Bets        map[uint]UserBet	 `json:"bets"`
-	itemsMutex 	*sync.Mutex
+	ID         int64       `json:"id"`
+	NewTime    time.Time   `json:"new_time,omitempty"`
+	StartTime  time.Time   `json:"start_time,omitempty"`
+	EndTime    time.Time   `json:"end_time,omitempty"`
+	Duration   int         `json:"duration"`
+	Bets       map[int]Bet `json:"bets"`
+	itemsMutex *sync.Mutex
 }
 
 type GameManager struct {
@@ -27,8 +27,7 @@ type GameManager struct {
 	events      chan interface{}
 }
 
-type UserBet struct {
-	Gambler  *m.Gambler
+type Bet struct {
 	Amount float64
 }
 
@@ -46,7 +45,7 @@ func (gm *GameManager) Events() chan interface{} {
 
 func (gm *GameManager) NewGame() {
 	gm.mutex.Lock()
-
+	log.Print("new-game")
 	now := time.Now()
 	gameID := now.UnixNano()
 
@@ -55,7 +54,7 @@ func (gm *GameManager) NewGame() {
 		NewTime:    now,
 		Duration:   gameDuration,
 		itemsMutex: &sync.Mutex{},
-		Bets:      make(map[uint]UserBet),
+		Bets:       make(map[int]Bet),
 	}
 
 	gm.currentGame = newGame
@@ -63,15 +62,14 @@ func (gm *GameManager) NewGame() {
 	gm.mutex.Unlock()
 
 	//Fire event
-	gm.events <- NewGameEvent{
-		Game: newGame,
-	}
+	//gm.events <- NewGameEvent{
+	//	Game: newGame,
+	//}
 
+	log.Println("[GAME] New game started")
+	log.Println("[GAME] Waiting for bets from at least 2 ppl..")
 
-	log.Println("New game started")
-	log.Println("Waiting for bets from at least 2 ppl..")
-
-	time.Sleep(time.Second * time.Duration(gameDuration))
+	//time.Sleep(time.Second * time.Duration(gameDuration))
 }
 
 func (gm *GameManager) GetCurrentGame() *Game {
@@ -86,15 +84,16 @@ func (gm *GameManager) StartGame() {
 	gm.mutex.Lock()
 	gm.currentGame.StartTime = time.Now()
 
-	gm.events <- StartGameEvent{
-		Game: gm.currentGame,
-	}
+	//gm.events <- StartGameEvent{
+	//	Game: gm.currentGame,
+	//}
 
 	gm.mutex.Unlock()
 
-	log.Println("Bets are placed, starting game..")
+	log.Println("[GAME] Bets are placed, starting game..")
 
 	defer func() {
+		log.Println("30 seconds starting now")
 		time.Sleep(time.Second * 30)
 		gm.EndGame()
 	}()
@@ -106,12 +105,13 @@ func (gm *GameManager) EndGame() {
 	gm.currentGame.EndTime = time.Now()
 	gm.pastGames[gm.currentGame.ID] = gm.currentGame
 
-	gm.events <- EndGameEvent{
-		Game: gm.currentGame,
-	}
+	//gm.events <- EndGameEvent{
+	//	Game: gm.currentGame,
+	//}
 
 	gm.mutex.Unlock()
 
+	log.Print("[GAME] ended, getting winner")
 	winner := gm.currentGame.GetWinner()
 	log.Print(winner)
 
@@ -121,69 +121,72 @@ func (gm *GameManager) EndGame() {
 	gm.NewGame()
 }
 
-func (g *Game) PlaceBet(gambler *m.Gambler, bet UserBet) {
-	log.Printf("Placing ($ %f)bet for: %d ", bet.Amount, gambler.Account.ID)
+func (g *Game) PlaceBet(gambler *m.Gambler, bet Bet) {
+	log.Printf("[GAME] Placing ($ %f)bet for: %d ", bet.Amount, gambler.Conn.UserId)
 	g.itemsMutex.Lock()
 	defer g.itemsMutex.Unlock()
 
 	// lookup current user bet if exist.
-	userBet, found := g.Bets[gambler.Account.ID]
+	userBet, found := g.Bets[gambler.Conn.UserId]
 	if !found {
-		g.Bets[gambler.Account.ID] = UserBet{}
+		g.Bets[gambler.Conn.UserId] = bet
 	}
 
-	userBet.Gambler = gambler
 	userBet.Amount = userBet.Amount + bet.Amount
-	g.Bets[gambler.Account.ID] = userBet
+	g.Bets[gambler.Conn.UserId] = userBet
 
-	gameManager.events <- NewBetEvent{
-		Game:  *g,
-		Bet: userBet ,
+	//gameManager.events <- NewBetEvent{
+	//	Game: *g,
+	//	Bet:  userBet,
+	//}
+
+	if g.StartTime.IsZero() && len(g.Bets) >= 2 {
+		log.Print("[GAME] enough bets starting game...")
+		gameManager.StartGame()
 	}
 
-	log.Printf("Total price of pot is now: %f", g.GetTotalPrice())
+	log.Printf("[GAME] Total price of pot is now: %f", g.GetTotalPrice())
 }
 
 func (g Game) GetTotalPrice() (totalPrice float64) {
 	for _, bet := range g.Bets {
-			totalPrice = totalPrice + bet.Amount
+		totalPrice = totalPrice + bet.Amount
 	}
 	return totalPrice
 }
 
-func (g *Game) GetWinner() *m.Gambler	{
+func (g *Game) GetWinner() *m.Gambler {
 
-	totalPricePerUser := make(map[uint]float64)
+	log.Print("Get winner")
+	totalPricePerUser := make(map[int]float64)
 	var totalPrice float64
 
 	g.itemsMutex.Lock()
 	defer g.itemsMutex.Unlock()
 
-
-	for _, bet := range g.Bets {
+	for i, bet := range g.Bets {
 		totalPrice = totalPrice + bet.Amount
-		totalPricePerUser[bet.Gambler.Account.ID] = totalPricePerUser[bet.Gambler.Account.ID] + bet.Amount
+		totalPricePerUser[i] = totalPricePerUser[i] + bet.Amount
 	}
 
-	log.Printf("Total price: %f", totalPrice)
+	log.Printf("[GAME] Total price: %f", totalPrice)
 	log.Print(totalPricePerUser)
 
 	// Fill pool
-	pool := make([]uint, 100)
+	pool := make([]int, 100)
 	for userID, p := range totalPricePerUser {
 		share := (p / totalPrice) * 100
 		for i := 1; i <= int(share); i++ {
-			pool[i - 1] = userID
+			pool[i-1] = userID
 		}
 	}
 
-	log.Printf("Pool length: %d, Pool: %v", len(pool), pool)
+	log.Printf("[GAME] Pool length: %d, Pool: %v", len(pool), pool)
 	// Pick random number from pool
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	randomInt := r.Intn(100)
 
-	log.Printf("Winner: %v", pool[randomInt])
-
+	log.Printf("[GAME] Winner: %v !!!!!!!!!!!!!!!!!!!!!!!!", pool[randomInt])
 
 	return &m.Gambler{}
 }

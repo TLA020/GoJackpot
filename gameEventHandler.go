@@ -1,6 +1,6 @@
 package main
 
-import(
+import (
 	m "goprac/models"
 )
 
@@ -17,8 +17,8 @@ type EndGameEvent struct {
 }
 
 type NewBetEvent struct {
-	Game  Game
-	Bet	UserBet
+	Game Game
+	Bet  Bet
 }
 
 func newGameHandler(game Game) {
@@ -44,7 +44,6 @@ func betPlacedHandler(game Game) {
 		"Data": game,
 	}))
 }
-
 
 func handleGameEvents() {
 	for event := range gameManager.Events() {

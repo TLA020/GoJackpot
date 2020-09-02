@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var signUp = func (c *fiber.Ctx){
+var signUp = func(c *fiber.Ctx) {
 	account := &m.Account{}
 
 	if err := c.BodyParser(account); err != nil {
@@ -76,7 +76,6 @@ var signIn = func(c *fiber.Ctx) {
 		return
 	}
 
-
 	token, err := createTokenByAccount(dbAccount)
 	if err != nil {
 		c.SendStatus(fiber.StatusInternalServerError)
@@ -98,13 +97,11 @@ func createTokenByAccount(acc *m.Account) (signedToken string, err error) {
 	claims["sub"] = acc.ID
 	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
 
- 	secret := os.Getenv("JWT_SECRET")
- 	if secret == "" {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
 		secret = "secret"
 	}
 	// Generate encoded token (sign)
 	signedToken, err = token.SignedString([]byte(secret))
 	return
 }
-
-

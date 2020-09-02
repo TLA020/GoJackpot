@@ -41,6 +41,3 @@ func (account *Account) Validate() (err error) {
 	}
 	return
 }
-
-
-
