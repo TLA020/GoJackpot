@@ -22,7 +22,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	log.Printf("[DB] Connection Established")
+	log.Printf("[DB] Client Established")
 
 	db.Debug().AutoMigrate(&Account{})
 

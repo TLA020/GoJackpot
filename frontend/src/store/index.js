@@ -2,6 +2,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import authStore from "./modules/auth";
+import gameStore from "./modules/game";
 import socketHandler from "./socket.handler";
 
 Vue.use(Vuex);
@@ -16,8 +17,11 @@ export default new Vuex.Store({
     },
     mutations: {
       SOCKET_ONOPEN(state, event) {
-        console.log("socket_open")
         Vue.$socket = event.currentTarget;
+
+        if (state.$auth.user.token) {
+          Vue.$socket.sendObj({ event: "auth", data: state.$auth.user })
+        }
         state.socket.isConnected = true;
       },
       SOCKET_ONCLOSE(state) {
@@ -43,6 +47,7 @@ export default new Vuex.Store({
     },
     modules: {
       $auth: authStore,
+      $game: gameStore,
     },
     plugins: [socketHandler]
 });

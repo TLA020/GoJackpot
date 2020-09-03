@@ -70,6 +70,7 @@
     computed: {
       ...mapState("$auth", ["error", "loading"])
     },
+
     data() {
       return {
         valid: false,

@@ -1,7 +1,7 @@
 <template>
     <div>
-        <pre>{{user}}</pre>
-        <v-btn @click="placeBet">place bet</v-btn>
+        <h2>Home</h2>
+        <pre>Welcome {{user.email}}</pre>
     </div>
 </template>
 
@@ -15,11 +15,13 @@
           return this.$store.state.$auth.user;
         }
     },
-    methods: {
-      placeBet() {
-        this.$store.dispatch("sendSocket", { name: "place-bet", data: { amount: Math.floor(Math.random() * 50) + 1 }});
-      }
-    }
+
+    mounted() {
+      this.$socketEvent("authorized", () => {
+        console.log("authorized from sokcethandler")
+      });
+    },
+
   }
 </script>
 

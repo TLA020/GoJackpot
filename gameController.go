@@ -21,7 +21,7 @@ func launchTestGame() {
 // faking users/bets to speed up test process.
 func fakeBetByUserId(userId int) {
 	fakeBet := Bet{Amount: (rand.Float64() * 20) + 5}
-	fakeWsConn := &m.Connection{Conn: nil, UserId: userId}
+	fakeWsConn := &m.Client{Conn: nil, UserId: userId}
 	fakeGambler := &m.Gambler{Conn: fakeWsConn}
 
 	gameManager.GetCurrentGame().PlaceBet(fakeGambler, fakeBet)

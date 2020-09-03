@@ -10,7 +10,7 @@ import (
 )
 
 var connectionsMutex = &sync.Mutex{}
-var connections = make([]*m.Connection, 0)
+var connections = make([]*m.Client, 0)
 
 var broadcastChan = make(chan m.Message)
 
@@ -18,7 +18,7 @@ func wsHandler(c *websocket.Conn) {
 	log.Printf("[WS] New connection")
 	connectionsMutex.Lock()
 
-	var newConnection = &m.Connection{
+	var newConnection = &m.Client{
 		Conn: c,
 	}
 
@@ -28,7 +28,7 @@ func wsHandler(c *websocket.Conn) {
 	listener(newConnection)
 }
 
-func listener(conn *m.Connection) {
+func listener(conn *m.Client) {
 	for {
 		_, message, err := conn.Conn.ReadMessage()
 		if err != nil {
@@ -52,9 +52,9 @@ func listener(conn *m.Connection) {
 			continue
 		}
 
-		log.Printf("Incoming websocket message: %s", msg.Name)
+		log.Printf("Incoming websocket message: %s", msg.Event)
 
-		switch msg.Name {
+		switch msg.Event {
 		case "auth":
 			onAuthorizeWsClient(msg, conn)
 		case "place-bet":
@@ -66,7 +66,7 @@ func listener(conn *m.Connection) {
 	}
 }
 
-func onBetPlaced(msg m.Message, conn *m.Connection) {
+func onBetPlaced(msg m.Message, conn *m.Client) {
 	amount := msg.Data["amount"].(float64)
 	gambler := &m.Gambler{Conn: conn}
 	gameManager.GetCurrentGame().PlaceBet(gambler, Bet{Amount: amount})
@@ -74,7 +74,7 @@ func onBetPlaced(msg m.Message, conn *m.Connection) {
 
 
 
-func onAuthorizeWsClient(msg m.Message, conn *m.Connection) {
+func onAuthorizeWsClient(msg m.Message, client *m.Client) {
 	acc := &m.Account{}
 	log.Print("[WS] client wants to authorize by token")
 
@@ -88,8 +88,17 @@ func onAuthorizeWsClient(msg m.Message, conn *m.Connection) {
 		log.Print(err)
 	}
 
-	conn.UserId = int(claims["sub"].(float64))
-	log.Printf("[WS] Connection now belongs to userId: %v", conn.UserId)
+	client.UserId = int(claims["sub"].(float64))
+	client.Email = claims["email"].(string)
+
+	// broadcast to change "online players" in front-end
+	playersChangedEvent := m.NewMessage("current-users", map[string]interface{}{
+		"users": connections,
+	})
+
+	SendBroadcast(playersChangedEvent)
+
+	log.Printf("[WS] Client now belongs to userId: %v", client.UserId)
 }
 
 func handleBroadcasts() {

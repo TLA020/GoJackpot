@@ -28,7 +28,7 @@ type GameManager struct {
 }
 
 type Bet struct {
-	Amount float64
+	Amount float64 `json:"amount"`
 }
 
 func NewGameManager() *GameManager {

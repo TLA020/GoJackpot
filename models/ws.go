@@ -4,17 +4,18 @@ import (
 	"github.com/gofiber/websocket"
 )
 
-type Connection struct {
-	Conn   *websocket.Conn
+type Client struct {
+	Conn   *websocket.Conn `json:"conn,omitempty"`
 	UserId int
+	Email string
 }
 
-func (c *Connection) SendMessage(msg interface{}) error {
+func (c *Client) SendMessage(msg interface{}) error {
 	return c.Conn.WriteJSON(msg)
 }
 
 type Message struct {
-	Name string                 `json:"name"`
+	Event string                 `json:"event"`
 	Data map[string]interface{} `json:"data"`
 }
 
@@ -23,9 +24,9 @@ type WsAuthEvent struct {
 	Data Account `json:"data"`
 }
 
-func NewMessage(name string, data map[string]interface{}) Message {
+func NewMessage(event string, data map[string]interface{}) Message {
 	return Message{
-		Name: name,
+		Event: event,
 		Data: data,
 	}
 }

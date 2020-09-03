@@ -1,10 +1,10 @@
 package models
 
 type Gambler struct {
-	Conn *Connection
+	Conn *Client
 }
 
-func NewGambler(conn *Connection) *Gambler {
+func NewGambler(conn *Client) *Gambler {
 	return &Gambler{
 		Conn: conn,
 	}

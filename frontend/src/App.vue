@@ -44,6 +44,7 @@
             <v-list-item
                     v-for="(child, i) in item.children"
                     :key="i"
+                    :to="child.url">
                     link
             >
               <v-list-item-action v-if="child.icon">
@@ -60,6 +61,7 @@
                   v-else
                   :key="item.text"
                   link
+                  :to="item.url"
           >
             <v-list-item-action>
               <v-icon>{{ item.icon }}</v-icon>
@@ -87,14 +89,9 @@
       >
         <span class="hidden-sm-and-down">Devtobs</span>
       </v-toolbar-title>
-      <v-text-field
-              flat
-              solo-inverted
-              hide-details
-              prepend-inner-icon="mdi-magnify"
-              label="Search"
-              class="hidden-sm-and-down"
-      ></v-text-field>
+        <span v-if="user">
+          _ID: ({{ user.ID }})      Email: {{ user.email }}
+        </span>
       <v-spacer></v-spacer>
       <v-btn icon>
         <v-icon>mdi-apps</v-icon>
@@ -130,11 +127,18 @@
       dialog: false,
       drawer: null,
       items: [
-        { icon: 'mdi-contacts', text: 'Users' },
+        { icon: 'mdi-home', text: 'Home', url: "/"},
+        { icon: 'mdi-cash-usd', text: 'Jackpot', url: "/jackpot" },
         { icon: 'mdi-cog', text: 'Settings' },
         { icon: 'mdi-help-circle', text: 'Help' },
       ],
-      source: {}
+      source: {},
+
     }),
+    computed: {
+      user() {
+        return this.$store.state.$auth.user;
+      }
+    }
   }
 </script>

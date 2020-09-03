@@ -9,7 +9,8 @@ export default {
         .then(({ data }) => {
           commit("SET_USER", data);
           commit("SET_ERROR", null);
-          dispatch("sendSocket", { name: "auth", data}, {root: true})
+          dispatch("sendSocket", { event: "auth", data }, {root: true})
+          localStorage.setItem('user', JSON.stringify(data));
           router.push("/");
         })
         .catch(err => {
@@ -27,7 +28,8 @@ export default {
         .then(({data}) => {
           commit("SET_USER", data);
           commit("SET_ERROR", null);
-          dispatch("sendSocket", { name: "auth", data}, {root: true})
+          dispatch("sendSocket", { event: "auth", data}, {root: true})
+          localStorage.setItem('user', JSON.stringify(data));
           router.push("/")
         })
         .catch(err => {
