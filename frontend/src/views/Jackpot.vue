@@ -15,7 +15,7 @@
       </v-col>
 
       <v-col cols="4">
-        <v-card max-width="500" class="mx-auto">
+        <v-card class="mx-auto">
           <v-toolbar color="blue darken-3" dark>
             <v-toolbar-title>Users online</v-toolbar-title>
             <v-spacer></v-spacer>
