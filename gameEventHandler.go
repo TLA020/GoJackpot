@@ -21,6 +21,10 @@ type NewBetEvent struct {
 	Bet  Bet
 }
 
+type CurrentUsersEvent struct {
+	Clients []*m.Client
+}
+
 func newGameHandler(game Game) {
 	SendBroadcast(m.NewMessage("new-game", map[string]interface{}{
 		"Data": game,
@@ -45,6 +49,12 @@ func betPlacedHandler(game Game) {
 	}))
 }
 
+func currentUsersHandler(clients []*m.Client) {
+	SendBroadcast(m.NewMessage("current-users", map[string]interface{}{
+		"users": clients,
+	}))
+}
+
 func handleGameEvents() {
 	for event := range gameManager.Events() {
 		switch e := event.(type) {
@@ -56,6 +66,8 @@ func handleGameEvents() {
 			endGameHandler(e.Game)
 		case NewBetEvent:
 			betPlacedHandler(e.Game)
+		case CurrentUsersEvent:
+			currentUsersHandler(e.Clients)
 		}
 	}
 }

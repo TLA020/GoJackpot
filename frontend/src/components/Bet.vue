@@ -17,7 +17,7 @@
     <v-btn color="warning" class="mr-4">
       Reset
     </v-btn>
-    <v-btn :disabled="false" color="success">
+    <v-btn :disabled="false" color="success" :loading="placingBet" @click="placeBet()">
       Place bet
     </v-btn>
   </v-form>
@@ -34,6 +34,12 @@ export default {
     }
   },
 
+  data() {
+    return {
+      placingBet: false,
+    }
+  },
+
   computed: {
     amount: {
       get() {
@@ -47,10 +53,13 @@ export default {
 
   methods: {
     placeBet() {
+      this.placingBet = true;
       this.$store.dispatch("sendSocket", {
-        name: "place-bet",
-        data: { amount: Math.floor(Math.random() * 50) + 1 }
+        event: "place-bet",
+        data: { amount: this.amount }
       });
+      this.placingBet = false;
+      this.amount = 0;
     },
   }
 };

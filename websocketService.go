@@ -24,7 +24,6 @@ func wsHandler(c *websocket.Conn) {
 
 	connections = append(connections, newConnection)
 	connectionsMutex.Unlock()
-	_ = newConnection.Conn.WriteMessage(websocket.TextMessage, []byte("welcome"))
 	listener(newConnection)
 }
 
@@ -40,9 +39,13 @@ func listener(conn *m.Client) {
 					connectionsMutex.Lock()
 					connections = append(connections[:i], connections[i+1:]...)
 					connectionsMutex.Unlock()
-					return
+					break
 				}
 			}
+			gameManager.events <- CurrentUsersEvent{
+				connections,
+			}
+			return
 		}
 
 		msg := m.Message{}
@@ -73,7 +76,6 @@ func onBetPlaced(msg m.Message, conn *m.Client) {
 }
 
 
-
 func onAuthorizeWsClient(msg m.Message, client *m.Client) {
 	acc := &m.Account{}
 	log.Print("[WS] client wants to authorize by token")
@@ -92,11 +94,9 @@ func onAuthorizeWsClient(msg m.Message, client *m.Client) {
 	client.Email = claims["email"].(string)
 
 	// broadcast to change "online players" in front-end
-	playersChangedEvent := m.NewMessage("current-users", map[string]interface{}{
-		"users": connections,
-	})
-
-	SendBroadcast(playersChangedEvent)
+	gameManager.events <- CurrentUsersEvent{
+		connections,
+	}
 
 	log.Printf("[WS] Client now belongs to userId: %v", client.UserId)
 }

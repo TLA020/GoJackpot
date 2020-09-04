@@ -121,6 +121,7 @@ func (g *Game) PlaceBet(gambler *m.Gambler, bet Bet) {
 	// lookup current user bet if exist.
 	userBet, found := g.Bets[gambler.Conn.UserId]
 	if !found {
+
 		g.Bets[gambler.Conn.UserId] = bet
 	}
 
