@@ -71,8 +71,8 @@ func listener(conn *m.Client) {
 
 func onBetPlaced(msg m.Message, conn *m.Client) {
 	amount := msg.Data["amount"].(float64)
-	gambler := &m.Gambler{Conn: conn}
-	gameManager.GetCurrentGame().PlaceBet(gambler, Bet{Amount: amount})
+	player := NewPlayer(conn.UserId, conn.Email)
+	gameManager.GetCurrentGame().PlaceBet(player, amount)
 }
 
 

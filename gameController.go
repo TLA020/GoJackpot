@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/gofiber/fiber"
-	m "goprac/models"
 	"math/rand"
 )
 
@@ -20,9 +19,7 @@ func launchTestGame() {
 
 // faking users/bets to speed up test process.
 func fakeBetByUserId(userId int) {
-	fakeBet := Bet{Amount: (rand.Float64() * 20) + 5}
-	fakeWsConn := &m.Client{Conn: nil, UserId: userId}
-	fakeGambler := &m.Gambler{Conn: fakeWsConn}
-
-	gameManager.GetCurrentGame().PlaceBet(fakeGambler, fakeBet)
+	fakeBet := (rand.Float64() * 20) + 5
+	fakePlayer := NewPlayer(userId, "")
+	gameManager.GetCurrentGame().PlaceBet(fakePlayer, fakeBet)
 }

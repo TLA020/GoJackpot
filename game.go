@@ -1,7 +1,6 @@
 package main
 
 import (
-	m "goprac/models"
 	"log"
 	"math/rand"
 	"sync"
@@ -16,7 +15,7 @@ type Game struct {
 	StartTime  time.Time   `json:"start_time,omitempty"`
 	EndTime    time.Time   `json:"end_time,omitempty"`
 	Duration   int         `json:"duration"`
-	Bets       map[int]Bet `json:"bets"`
+	Bets       []UserBet   `json:"bets"`
 	itemsMutex *sync.Mutex
 }
 
@@ -27,8 +26,41 @@ type GameManager struct {
 	events      chan interface{}
 }
 
+type Player struct {
+	UserId int `json:"userId"`
+	Email string `json:"email"`
+}
+
+func NewPlayer(uid int, email string) *Player {
+	return &Player{
+		UserId: uid,
+		Email: email,
+	}
+}
+
+
 type Bet struct {
 	Amount float64 `json:"amount"`
+	Created time.Time
+}
+
+func NewBet(amount float64) *Bet {
+	return &Bet{
+		Amount: amount,
+		Created: time.Now(),
+	}
+}
+
+type UserBet struct {
+	Bets []*Bet `json:"bets"`
+	Player *Player `json:"player"`
+}
+
+func NewUserBet(bet *Bet, player *Player) *UserBet {
+	return &UserBet{
+		Bets: []*Bet {bet},
+		Player: player,
+	}
 }
 
 func NewGameManager() *GameManager {
@@ -53,7 +85,7 @@ func (gm *GameManager) NewGame() {
 		NewTime:    now,
 		Duration:   gameDuration,
 		itemsMutex: &sync.Mutex{},
-		Bets:       make(map[int]Bet),
+		Bets:       make([]UserBet, 0),
 	}
 
 	gm.currentGame = newGame
@@ -114,23 +146,27 @@ func (gm *GameManager) EndGame() {
 	gm.NewGame()
 }
 
-func (g *Game) PlaceBet(gambler *m.Gambler, bet Bet) {
-	log.Printf("[GAME] NEW BET:($%.2f) FROM => UserId: %d ", bet.Amount, gambler.Conn.UserId)
+func (g *Game) PlaceBet(player *Player, amount float64) {
+	log.Printf("[GAME] NEW BET:($%.2f) FROM => UserId: %d ", amount, player.UserId)
 	g.itemsMutex.Lock()
 
+	bet := NewBet(amount)
 	// lookup current user bet if exist.
-	userBet, found := g.Bets[gambler.Conn.UserId]
-	if !found {
-
-		g.Bets[gambler.Conn.UserId] = bet
+	found := false
+	for _, userBet := range g.Bets {
+		if userBet.Player.UserId == player.UserId {
+			found = true
+			userBet.Bets = append(userBet.Bets, bet)
+		}
 	}
-
-	userBet.Amount = userBet.Amount + bet.Amount
-	g.Bets[gambler.Conn.UserId] = userBet
+	if !found {
+		userBet := NewUserBet(bet, player)
+		g.Bets = append(g.Bets, *userBet)
+	}
 
 	gameManager.events <- NewBetEvent{
 		Game: *g,
-		Bet:  userBet,
+		Bet:  *bet,
 	}
 
 	log.Printf("[GAME] TOTAL BETS:($%.2f) ", g.GetTotalPrice())
@@ -143,8 +179,10 @@ func (g *Game) PlaceBet(gambler *m.Gambler, bet Bet) {
 }
 
 func (g Game) GetTotalPrice() (totalPrice float64) {
-	for _, bet := range g.Bets {
-		totalPrice = totalPrice + bet.Amount
+	for _, userBet := range g.Bets {
+		for _, bet := range userBet.Bets {
+			totalPrice = totalPrice + bet.Amount
+		}
 	}
 	return totalPrice
 }
@@ -153,13 +191,16 @@ func (g *Game) GetWinner() *int {
 
 	log.Print("[GAME] picking a winner...")
 	totalPricePerUser := make(map[int]float64)
-	var totalPrice float64
 
 	g.itemsMutex.Lock()
 	defer g.itemsMutex.Unlock()
-	for i, bet := range g.Bets {
-		totalPrice = totalPrice + bet.Amount
-		totalPricePerUser[i] = totalPricePerUser[i] + bet.Amount
+
+	totalPrice := g.GetTotalPrice()
+
+	for _, userBet := range g.Bets {
+		for _, bet := range userBet.Bets {
+			totalPricePerUser[userBet.Player.UserId] = totalPricePerUser[userBet.Player.UserId] + bet.Amount
+		}
 	}
 
 	log.Printf("[GAME] Total price: %.2f", totalPrice)
