@@ -98,6 +98,10 @@ func onAuthorizeWsClient(msg m.Message, client *m.Client) {
 		connections,
 	}
 
+	gameManager.events <- CurrentGame{
+		gameManager.currentGame,
+	}
+
 	log.Printf("[WS] Client now belongs to userId: %v", client.UserId)
 }
 

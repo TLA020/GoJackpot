@@ -1,6 +1,7 @@
 package main
 
 import (
+	u "goprac/utils"
 	"log"
 	"math/rand"
 	"sync"
@@ -10,12 +11,12 @@ import (
 var gameDuration = 60
 
 type Game struct {
-	ID         int64       `json:"id"`
-	NewTime    time.Time   `json:"new_time,omitempty"`
-	StartTime  time.Time   `json:"start_time,omitempty"`
-	EndTime    time.Time   `json:"end_time,omitempty"`
-	Duration   int         `json:"duration"`
-	Bets       []UserBet   `json:"bets"`
+	ID         int64     `json:"id"`
+	NewTime    time.Time `json:"new_time,omitempty"`
+	StartTime  time.Time `json:"start_time,omitempty"`
+	EndTime    time.Time `json:"end_time,omitempty"`
+	Duration   int       `json:"duration"`
+	UserBets   []UserBet `json:"userBets"`
 	itemsMutex *sync.Mutex
 }
 
@@ -27,13 +28,13 @@ type GameManager struct {
 }
 
 type Player struct {
-	UserId int `json:"userId"`
+	Id    int    `json:"id"`
 	Email string `json:"email"`
 }
 
 func NewPlayer(uid int, email string) *Player {
 	return &Player{
-		UserId: uid,
+		Id:    uid,
 		Email: email,
 	}
 }
@@ -85,7 +86,7 @@ func (gm *GameManager) NewGame() {
 		NewTime:    now,
 		Duration:   gameDuration,
 		itemsMutex: &sync.Mutex{},
-		Bets:       make([]UserBet, 0),
+		UserBets:   make([]UserBet, 0),
 	}
 
 	gm.currentGame = newGame
@@ -99,8 +100,6 @@ func (gm *GameManager) NewGame() {
 
 	log.Println("[GAME] New game started")
 	log.Println("[GAME] Waiting for bets from at least 2 ppl..")
-
-	//time.Sleep(time.Second * time.Duration(gameDuration))
 }
 
 func (gm *GameManager) GetCurrentGame() *Game {
@@ -123,8 +122,11 @@ func (gm *GameManager) StartGame() {
 	log.Println("[GAME] Game Started")
 
 	defer func() {
-		log.Println("[GAME] 30 seconds left...")
-		time.Sleep(time.Second * 30)
+		for d := range u.Countdown(u.NewTicker(time.Second), 30 * time.Second) {
+			gm.events <- CountDownEvent{
+				TimeLeft: d.Seconds(),
+			}
+		}
 		gm.EndGame()
 	}()
 }
@@ -143,44 +145,49 @@ func (gm *GameManager) EndGame() {
 
 	log.Print("[GAME] Has ended, no more bets!")
 	_ = gm.currentGame.GetWinner()
-	gm.NewGame()
+
+	defer func() {
+		log.Println("[GAME] starting new game in 15 seconds...")
+		time.Sleep(time.Second * 15)
+		gm.NewGame()
+	}()
 }
 
 func (g *Game) PlaceBet(player *Player, amount float64) {
-	log.Printf("[GAME] NEW BET:($%.2f) FROM => UserId: %d ", amount, player.UserId)
+	log.Printf("[GAME] NEW BET:($%.2f) FROM => Id: %d ", amount, player.Id)
 	g.itemsMutex.Lock()
 
 	bet := NewBet(amount)
 	// lookup current user bet if exist.
 	found := false
-	for i, userBet := range g.Bets {
-		if userBet.Player.UserId == player.UserId {
-			g.Bets[i].Bets = append(userBet.Bets, bet)
+	for i, userBet := range g.UserBets {
+		if userBet.Player.Id == player.Id {
+			g.UserBets[i].Bets = append(userBet.Bets, bet)
 			found = true
 		}
 	}
 
 	if !found {
 		userBet := NewUserBet(bet, player)
-		g.Bets = append(g.Bets, *userBet)
+		g.UserBets = append(g.UserBets, *userBet)
 	}
 
-	gameManager.events <- NewBetEvent{
-		Game: *g,
-		Bet:  *bet,
+	g.itemsMutex.Unlock()
+
+	gameManager.events <- NewBetEvent {
+		*g,
 	}
 
 	log.Printf("[GAME] TOTAL BETS:($%.2f) ", g.GetTotalPrice())
-	g.itemsMutex.Unlock()
 
-	if g.StartTime.IsZero() && len(g.Bets) >= 2 {
+	if g.StartTime.IsZero() && len(g.UserBets) >= 2 {
 		log.Print("[GAME] Enough players starting game...")
 		gameManager.StartGame()
 	}
 }
 
 func (g Game) GetTotalPrice() (totalPrice float64) {
-	for _, userBet := range g.Bets {
+	for _, userBet := range g.UserBets {
 		for _, bet := range userBet.Bets {
 			totalPrice = totalPrice + bet.Amount
 		}
@@ -198,14 +205,13 @@ func (g *Game) GetWinner() *int {
 
 	totalPrice := g.GetTotalPrice()
 
-	for _, userBet := range g.Bets {
+	for _, userBet := range g.UserBets {
 		for _, bet := range userBet.Bets {
-			totalPricePerUser[userBet.Player.UserId] = totalPricePerUser[userBet.Player.UserId] + bet.Amount
+			totalPricePerUser[userBet.Player.Id] = totalPricePerUser[userBet.Player.Id] + bet.Amount
 		}
 	}
 
 	log.Printf("[GAME] Total price: %.2f", totalPrice)
-	//log.Print(totalPricePerUser)
 
 	// Fill pool
 	pool := make([]int, 100)
@@ -220,9 +226,19 @@ func (g *Game) GetWinner() *int {
 	// Pick random number from pool
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	randomInt := r.Intn(100)
+	winningUserId := pool[randomInt]
 
-	log.Printf("[GAME] Winner userId: %v", pool[randomInt])
+	log.Printf("[GAME] Winner userId: %v", winningUserId)
 	log.Printf("====================================")
+
+	for _, userBet := range g.UserBets {
+		if userBet.Player.Id == winningUserId {
+			gameManager.events <- WinnerPickedEvent {
+				Player: *userBet.Player,
+				Amount:totalPricePerUser[pool[randomInt]],
+			}
+		}
+	}
 
 	return &pool[randomInt]
 }
