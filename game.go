@@ -153,12 +153,13 @@ func (g *Game) PlaceBet(player *Player, amount float64) {
 	bet := NewBet(amount)
 	// lookup current user bet if exist.
 	found := false
-	for _, userBet := range g.Bets {
+	for i, userBet := range g.Bets {
 		if userBet.Player.UserId == player.UserId {
+			g.Bets[i].Bets = append(userBet.Bets, bet)
 			found = true
-			userBet.Bets = append(userBet.Bets, bet)
 		}
 	}
+
 	if !found {
 		userBet := NewUserBet(bet, player)
 		g.Bets = append(g.Bets, *userBet)
