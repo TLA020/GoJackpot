@@ -71,8 +71,8 @@ func listener(conn *m.Client) {
 
 func onBetPlaced(msg m.Message, conn *m.Client) {
 	amount := msg.Data["amount"].(float64)
-	gambler := &m.Gambler{Conn: conn}
-	gameManager.GetCurrentGame().PlaceBet(gambler, Bet{Amount: amount})
+	player := NewPlayer(conn.UserId, conn.Email)
+	gameManager.GetCurrentGame().PlaceBet(player, amount)
 }
 
 
@@ -96,6 +96,10 @@ func onAuthorizeWsClient(msg m.Message, client *m.Client) {
 	// broadcast to change "online players" in front-end
 	gameManager.events <- CurrentUsersEvent{
 		connections,
+	}
+
+	gameManager.events <- CurrentGame{
+		gameManager.currentGame,
 	}
 
 	log.Printf("[WS] Client now belongs to userId: %v", client.UserId)

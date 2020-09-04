@@ -18,16 +18,28 @@ type EndGameEvent struct {
 
 type NewBetEvent struct {
 	Game Game
-	Bet  Bet
+}
+
+type CurrentGame struct {
+	Game Game
 }
 
 type CurrentUsersEvent struct {
 	Clients []*m.Client
 }
 
+type CountDownEvent struct {
+	TimeLeft float64
+}
+
+type WinnerPickedEvent struct {
+	Player Player
+	Amount float64
+}
+
 func newGameHandler(game Game) {
 	SendBroadcast(m.NewMessage("new-game", map[string]interface{}{
-		"Data": game,
+		"game": game,
 	}))
 }
 
@@ -45,13 +57,31 @@ func endGameHandler(game Game) {
 
 func betPlacedHandler(game Game) {
 	SendBroadcast(m.NewMessage("bet-placed", map[string]interface{}{
-		"Data": game,
+		"game": game,
 	}))
 }
 
 func currentUsersHandler(clients []*m.Client) {
 	SendBroadcast(m.NewMessage("current-users", map[string]interface{}{
 		"users": clients,
+	}))
+}
+func countDownHandler(timeLeft float64) {
+	SendBroadcast(m.NewMessage("time-left", map[string]interface{}{
+		"timeLeft": timeLeft,
+	}))
+}
+
+func winnerPickedHandler(player Player, amount float64) {
+	SendBroadcast(m.NewMessage("winner-picked", map[string]interface{}{
+		"winner": player,
+		"amount": amount,
+	}))
+}
+
+func sendCurrentGame(game Game) {
+	SendBroadcast(m.NewMessage("current-game", map[string]interface{}{
+		"game": game,
 	}))
 }
 
@@ -68,6 +98,12 @@ func handleGameEvents() {
 			betPlacedHandler(e.Game)
 		case CurrentUsersEvent:
 			currentUsersHandler(e.Clients)
+		case CountDownEvent:
+			countDownHandler(e.TimeLeft)
+		case WinnerPickedEvent:
+			winnerPickedHandler(e.Player, e.Amount)
+		case CurrentGame:
+			sendCurrentGame(e.Game)
 		}
 	}
 }
