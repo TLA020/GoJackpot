@@ -57,6 +57,8 @@ func listener(conn *m.Client) {
 
 		log.Printf("Incoming websocket message: %s", msg.Event)
 
+
+		// temp move to event handler.
 		switch msg.Event {
 		case "auth":
 			onAuthorizeWsClient(msg, conn)

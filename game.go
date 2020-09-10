@@ -11,13 +11,13 @@ import (
 var gameDuration = 60
 
 type Game struct {
-	ID         int64     `json:"id"`
-	NewTime    time.Time `json:"new_time,omitempty"`
-	StartTime  time.Time `json:"start_time,omitempty"`
-	EndTime    time.Time `json:"end_time,omitempty"`
-	Duration   int       `json:"duration"`
-	UserBets   []UserBet `json:"userBets"`
-	itemsMutex *sync.Mutex
+	ID        int64     `json:"id"`
+	NewTime   time.Time `json:"new_time,omitempty"`
+	StartTime time.Time `json:"start_time,omitempty"`
+	EndTime   time.Time `json:"end_time,omitempty"`
+	Duration  int       `json:"duration"`
+	UserBets  []UserBet `json:"userBets"`
+	BetsMutex *sync.Mutex
 }
 
 type GameManager struct {
@@ -82,11 +82,11 @@ func (gm *GameManager) NewGame() {
 	gameID := now.UnixNano()
 
 	newGame := Game{
-		ID:         gameID,
-		NewTime:    now,
-		Duration:   gameDuration,
-		itemsMutex: &sync.Mutex{},
-		UserBets:   make([]UserBet, 0),
+		ID:        gameID,
+		NewTime:   now,
+		Duration:  gameDuration,
+		BetsMutex: &sync.Mutex{},
+		UserBets:  make([]UserBet, 0),
 	}
 
 	gm.currentGame = newGame
@@ -155,7 +155,7 @@ func (gm *GameManager) EndGame() {
 
 func (g *Game) PlaceBet(player *Player, amount float64) {
 	log.Printf("[GAME] NEW BET:($%.2f) FROM => Id: %d ", amount, player.Id)
-	g.itemsMutex.Lock()
+	g.BetsMutex.Lock()
 
 	bet := NewBet(amount)
 	// lookup current user bet if exist.
@@ -172,7 +172,7 @@ func (g *Game) PlaceBet(player *Player, amount float64) {
 		g.UserBets = append(g.UserBets, *userBet)
 	}
 
-	g.itemsMutex.Unlock()
+	g.BetsMutex.Unlock()
 
 	gameManager.events <- NewBetEvent {
 		*g,
@@ -200,8 +200,8 @@ func (g *Game) GetWinner() *int {
 	log.Print("[GAME] picking a winner...")
 	totalPricePerUser := make(map[int]float64)
 
-	g.itemsMutex.Lock()
-	defer g.itemsMutex.Unlock()
+	g.BetsMutex.Lock()
+	defer g.BetsMutex.Unlock()
 
 	totalPrice := g.GetTotalPrice()
 
