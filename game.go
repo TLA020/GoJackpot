@@ -181,7 +181,7 @@ func (g *Game) PlaceBet(player *Player, amount float64) {
 
 	if g.StartTime.IsZero() && len(g.UserBets) >= 2 {
 		log.Print("[GAME] Enough players starting game...")
-		gameManager.StartGame()
+		go gameManager.StartGame()
 	}
 }
 

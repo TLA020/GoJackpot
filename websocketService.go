@@ -68,17 +68,13 @@ func listener(client *m.Client) {
 
 	for {
 		_, message, err := client.Conn.ReadMessage()
+		log.Print("incoming ws message")
 		if err != nil {
 			log.Println("[WS] Read error:", err)
 			return // runs deferred function
 		}
 
-		msg := m.Message{}
-		if err := json.Unmarshal(message, &msg); err != nil {
-			log.Print(err)
-			continue
-		}
-		handleMessage(client, msg)
+		handleMessages(client, message)
 	}
 }
 
@@ -89,7 +85,13 @@ func onClientsUpdate() {
 	}
 }
 
-func handleMessage(client *m.Client, msg m.Message) {
+func handleMessages(client *m.Client, message []byte) {
+	msg := m.Message{}
+	if err := json.Unmarshal(message, &msg); err != nil {
+		log.Print(err)
+		return
+	}
+
 	// temp move to event handler.
 	switch msg.Event {
 	case "auth":

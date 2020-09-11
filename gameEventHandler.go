@@ -67,9 +67,10 @@ func currentUsersHandler(clients []*m.Client) {
 	}))
 }
 func countDownHandler(timeLeft float64) {
-	SendBroadcast(m.NewMessage("time-left", map[string]interface{}{
-		"timeLeft": timeLeft,
-	}))
+	return
+	//SendBroadcast(m.NewMessage("time-left", map[string]interface{}{
+	//	"timeLeft": timeLeft,
+	//}))
 }
 
 func winnerPickedHandler(player Player, amount float64) {

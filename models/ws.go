@@ -2,7 +2,6 @@ package models
 
 import (
 	"github.com/gofiber/websocket"
-	"log"
 )
 
 type Client struct {
@@ -12,7 +11,6 @@ type Client struct {
 }
 
 func (c *Client) SendMessage(msg interface{}) error {
-	log.Printf("send message to user: %s, event: %s", c.Email, msg)
 	return c.Conn.WriteJSON(msg)
 }
 
