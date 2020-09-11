@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <v-row>
-      <v-col cols="8">
+      <v-col cols="12" lg="8">
         <v-card class="mx-auto">
           <v-toolbar color="blue darken-3" dark>
             <v-toolbar-title>Game info</v-toolbar-title>
@@ -14,7 +14,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="4">
+      <v-col cols="12" lg="4">
         <v-card class="mx-auto">
           <v-toolbar color="blue darken-3" dark>
             <v-toolbar-title>Users online</v-toolbar-title>
@@ -27,7 +27,7 @@
     </v-row>
 
     <v-row>
-      <v-col cols="8">
+      <v-col cols="12" lg="8">
         <v-card class="mx-auto">
           <v-toolbar color="blue darken-3" dark>
             <v-toolbar-title>Play</v-toolbar-title>
@@ -40,7 +40,7 @@
         </v-card>
       </v-col>
 
-      <v-col cols="4">
+      <v-col cols="12" lg="4">
         <v-card class="mx-auto">
           <v-toolbar color="blue darken-3" dark>
             <v-toolbar-title>Game history</v-toolbar-title>
