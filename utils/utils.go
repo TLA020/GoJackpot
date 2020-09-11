@@ -3,6 +3,7 @@ package utils
 import (
 	"time"
 )
+
 type Ticker interface {
 	Duration() time.Duration
 	Tick()

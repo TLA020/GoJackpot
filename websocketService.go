@@ -9,65 +9,96 @@ import (
 	"sync"
 )
 
-var connectionsMutex = &sync.Mutex{}
-var connections = make([]*m.Client, 0)
+var clientsMutex = &sync.Mutex{}
 
-var broadcastChan = make(chan m.Message)
+var clients = make([]*m.Client, 0)
+var register = make(chan *m.Client)
+var broadcast = make(chan m.Message)
+var unregister = make(chan *m.Client)
+
+func runHub() {
+	for {
+		select {
+		case client := <-register:
+			// Register new connection
+			clientsMutex.Lock()
+			clients = append(clients, client)
+			clientsMutex.Unlock()
+			onClientsUpdate()
+
+		case message := <-broadcast:
+			log.Printf("message in broadcast channel %s", message.Event)
+			// Broadcast msg to all clients
+			for _, c := range clients {
+				err := c.SendMessage(message)
+				if err != nil {
+					unregister <- c
+					log.Print(err)
+				}
+			}
+
+		case connection := <-unregister:
+			// Remove the client from the hub
+			for i, c := range clients {
+				if c == connection {
+					clientsMutex.Lock()
+					clients = append(clients[:i], clients[i+1:]...)
+					clientsMutex.Unlock()
+					onClientsUpdate()
+				}
+			}
+		}
+	}
+}
 
 func wsHandler(c *websocket.Conn) {
 	log.Printf("[WS] New connection")
-	connectionsMutex.Lock()
+	var client = &m.Client{Conn: c}
 
-	var newConnection = &m.Client{
-		Conn: c,
-	}
-
-	connections = append(connections, newConnection)
-	connectionsMutex.Unlock()
-	listener(newConnection)
+	register <- client
+	listener(client)
 }
 
-func listener(conn *m.Client) {
+func listener(client *m.Client) {
+	defer func() {
+		unregister <- client
+		if err := client.Conn.Close(); err != nil {
+			log.Println("[WS] Close error:", err)
+		}
+	}()
+
 	for {
-		_, message, err := conn.Conn.ReadMessage()
+		_, message, err := client.Conn.ReadMessage()
 		if err != nil {
-			//	close(conn.ReadChan)
-			log.Printf("Error: %s", err)
-			// user disconnected or something else went wrong, delete from connections.
-			for i, c := range connections {
-				if c == conn {
-					connectionsMutex.Lock()
-					connections = append(connections[:i], connections[i+1:]...)
-					connectionsMutex.Unlock()
-					break
-				}
-			}
-			gameManager.events <- CurrentUsersEvent{
-				connections,
-			}
-			return
+			log.Println("[WS] Read error:", err)
+			return // runs deferred function
 		}
 
 		msg := m.Message{}
-		err = json.Unmarshal(message, &msg)
-		if err != nil {
+		if err := json.Unmarshal(message, &msg); err != nil {
 			log.Print(err)
 			continue
 		}
+		handleMessage(client, msg)
+	}
+}
 
-		log.Printf("Incoming websocket message: %s", msg.Event)
+func onClientsUpdate() {
+	log.Print("clients update send broadcast")
+	gameManager.events <- CurrentUsersEvent{
+		clients,
+	}
+}
 
-
-		// temp move to event handler.
-		switch msg.Event {
-		case "auth":
-			onAuthorizeWsClient(msg, conn)
-		case "place-bet":
-			onBetPlaced(msg, conn)
-		default:
-			log.Printf("default")
-		}
-
+func handleMessage(client *m.Client, msg m.Message) {
+	// temp move to event handler.
+	switch msg.Event {
+	case "auth":
+		onAuthorizeWsClient(msg, client)
+	case "place-bet":
+		onBetPlaced(msg, client)
+	default:
+		log.Printf("default")
 	}
 }
 
@@ -76,7 +107,6 @@ func onBetPlaced(msg m.Message, conn *m.Client) {
 	player := NewPlayer(conn.UserId, conn.Email)
 	gameManager.GetCurrentGame().PlaceBet(player, amount)
 }
-
 
 func onAuthorizeWsClient(msg m.Message, client *m.Client) {
 	acc := &m.Account{}
@@ -95,10 +125,7 @@ func onAuthorizeWsClient(msg m.Message, client *m.Client) {
 	client.UserId = int(claims["sub"].(float64))
 	client.Email = claims["email"].(string)
 
-	// broadcast to change "online players" in front-end
-	gameManager.events <- CurrentUsersEvent{
-		connections,
-	}
+	onClientsUpdate()
 
 	gameManager.events <- CurrentGame{
 		gameManager.currentGame,
@@ -107,18 +134,7 @@ func onAuthorizeWsClient(msg m.Message, client *m.Client) {
 	log.Printf("[WS] Client now belongs to userId: %v", client.UserId)
 }
 
-func handleBroadcasts() {
-	for msg := range broadcastChan {
-		// broadcast event to all connections
-		for _, c := range connections {
-			err := c.SendMessage(msg)
-			if err != nil {
-				log.Print(err)
-			}
-		}
-	}
-}
-
 func SendBroadcast(msg m.Message) {
-	broadcastChan <- msg
+	log.Printf("Send broadcast msg event: %s", msg.Event)
+	broadcast <- msg
 }

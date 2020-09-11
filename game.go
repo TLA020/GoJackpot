@@ -39,27 +39,26 @@ func NewPlayer(uid int, email string) *Player {
 	}
 }
 
-
 type Bet struct {
-	Amount float64 `json:"amount"`
+	Amount  float64 `json:"amount"`
 	Created time.Time
 }
 
 func NewBet(amount float64) *Bet {
 	return &Bet{
-		Amount: amount,
+		Amount:  amount,
 		Created: time.Now(),
 	}
 }
 
 type UserBet struct {
-	Bets []*Bet `json:"bets"`
+	Bets   []*Bet  `json:"bets"`
 	Player *Player `json:"player"`
 }
 
 func NewUserBet(bet *Bet, player *Player) *UserBet {
 	return &UserBet{
-		Bets: []*Bet {bet},
+		Bets:   []*Bet{bet},
 		Player: player,
 	}
 }
@@ -122,7 +121,7 @@ func (gm *GameManager) StartGame() {
 	log.Println("[GAME] Game Started")
 
 	defer func() {
-		for d := range u.Countdown(u.NewTicker(time.Second), 30 * time.Second) {
+		for d := range u.Countdown(u.NewTicker(time.Second), 30*time.Second) {
 			gm.events <- CountDownEvent{
 				TimeLeft: d.Seconds(),
 			}
@@ -174,7 +173,7 @@ func (g *Game) PlaceBet(player *Player, amount float64) {
 
 	g.BetsMutex.Unlock()
 
-	gameManager.events <- NewBetEvent {
+	gameManager.events <- NewBetEvent{
 		*g,
 	}
 
@@ -233,9 +232,9 @@ func (g *Game) GetWinner() *int {
 
 	for _, userBet := range g.UserBets {
 		if userBet.Player.Id == winningUserId {
-			gameManager.events <- WinnerPickedEvent {
+			gameManager.events <- WinnerPickedEvent{
 				Player: *userBet.Player,
-				Amount:totalPricePerUser[pool[randomInt]],
+				Amount: totalPricePerUser[pool[randomInt]],
 			}
 		}
 	}

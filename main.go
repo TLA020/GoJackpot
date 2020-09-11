@@ -27,7 +27,7 @@ func main() {
 	app.Use(middleware.Logger())
 
 	setupRoutes(app)
-	go handleBroadcasts()
+	go runHub()
 
 	listenPort := os.Getenv("HTTP_LISTEN_PORT")
 	if len(listenPort) < 1 {
@@ -35,8 +35,8 @@ func main() {
 	}
 
 	log.Printf("Starting HTTP-server on port %s", listenPort)
-	 go handleGameEvents()
-	 gameManager.NewGame()
+	go handleGameEvents()
+	gameManager.NewGame()
 
 	err := app.Listen(listenPort)
 	if err != nil {
