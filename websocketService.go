@@ -27,7 +27,6 @@ func runHub() {
 			onClientsUpdate()
 
 		case message := <-broadcast:
-			log.Printf("message in broadcast channel %s", message.Event)
 			// Broadcast msg to all clients
 			for _, c := range clients {
 				err := c.SendMessage(message)
@@ -109,6 +108,8 @@ func onBetPlaced(msg m.Message, conn *m.Client) {
 }
 
 func onAuthorizeWsClient(msg m.Message, client *m.Client) {
+	defer onClientsUpdate()
+
 	acc := &m.Account{}
 	log.Print("[WS] client wants to authorize by token")
 
@@ -125,8 +126,6 @@ func onAuthorizeWsClient(msg m.Message, client *m.Client) {
 	client.UserId = int(claims["sub"].(float64))
 	client.Email = claims["email"].(string)
 
-	onClientsUpdate()
-
 	gameManager.events <- CurrentGame{
 		gameManager.currentGame,
 	}
@@ -135,6 +134,5 @@ func onAuthorizeWsClient(msg m.Message, client *m.Client) {
 }
 
 func SendBroadcast(msg m.Message) {
-	log.Printf("Send broadcast msg event: %s", msg.Event)
 	broadcast <- msg
 }
