@@ -93,7 +93,8 @@ func (gm *GameManager) NewGame() {
 	gm.mutex.Unlock()
 
 	//Fire event
-	gm.events <- NewGameEvent{
+	gm.events <- GameEvent{
+		Type: "new-game",
 		Game: newGame,
 	}
 
@@ -112,7 +113,8 @@ func (gm *GameManager) StartGame() {
 	gm.mutex.Lock()
 	gm.currentGame.StartTime = time.Now()
 
-	gm.events <- StartGameEvent{
+	gm.events <- GameEvent{
+		Type: "start-game",
 		Game: gm.currentGame,
 	}
 
@@ -136,7 +138,8 @@ func (gm *GameManager) EndGame() {
 	gm.currentGame.EndTime = time.Now()
 	gm.pastGames[gm.currentGame.ID] = gm.currentGame
 
-	gm.events <- EndGameEvent{
+	gm.events <- GameEvent {
+		Type: "end-game",
 		Game: gm.currentGame,
 	}
 
@@ -173,8 +176,11 @@ func (g *Game) PlaceBet(player *Player, amount float64) {
 
 	g.BetsMutex.Unlock()
 
-	gameManager.events <- NewBetEvent{
-		*g,
+	gameManager.events <- GameEvent {
+		Type: "bet-placed",
+		Game: *gameManager.GetCurrentGame(),
+		Player: player,
+		Amount: amount,
 	}
 
 	log.Printf("[GAME] TOTAL BETS:($%.2f) ", g.GetTotalPrice())
@@ -197,7 +203,7 @@ func (g Game) GetTotalPrice() (totalPrice float64) {
 func (g *Game) GetWinner() *int {
 
 	log.Print("[GAME] picking a winner...")
-	totalPerUser := make(map[int]float64)
+	totalPricePerUser := make(map[int]float64)
 
 	g.BetsMutex.Lock()
 	defer g.BetsMutex.Unlock()
@@ -206,7 +212,7 @@ func (g *Game) GetWinner() *int {
 
 	for _, userBet := range g.UserBets {
 		for _, bet := range userBet.Bets {
-			totalPerUser[userBet.Player.Id] = totalPerUser[userBet.Player.Id] + bet.Amount
+			totalPricePerUser[userBet.Player.Id] = totalPricePerUser[userBet.Player.Id] + bet.Amount
 		}
 	}
 
@@ -214,7 +220,7 @@ func (g *Game) GetWinner() *int {
 
 	// Fill pool
 	pool := make([]int, 100)
-	for userID, p := range totalPerUser {
+	for userID, p := range totalPricePerUser {
 		share := (p / totalPrice) * 100
 		for i := 1; i <= int(share); i++ {
 			pool[i-1] = userID
@@ -232,9 +238,11 @@ func (g *Game) GetWinner() *int {
 
 	for _, userBet := range g.UserBets {
 		if userBet.Player.Id == winningUserId {
-			gameManager.events <- WinnerPickedEvent{
-				Player: *userBet.Player,
-				Amount: totalPerUser[pool[randomInt]],
+			gameManager.events <- GameEvent {
+				Type: "winner-picked",
+				Game: *g,
+				Player: userBet.Player,
+				Amount: totalPricePerUser[pool[randomInt]],
 			}
 		}
 	}
