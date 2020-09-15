@@ -197,7 +197,7 @@ func (g Game) GetTotalPrice() (totalPrice float64) {
 func (g *Game) GetWinner() *int {
 
 	log.Print("[GAME] picking a winner...")
-	totalPricePerUser := make(map[int]float64)
+	totalPerUser := make(map[int]float64)
 
 	g.BetsMutex.Lock()
 	defer g.BetsMutex.Unlock()
@@ -206,7 +206,7 @@ func (g *Game) GetWinner() *int {
 
 	for _, userBet := range g.UserBets {
 		for _, bet := range userBet.Bets {
-			totalPricePerUser[userBet.Player.Id] = totalPricePerUser[userBet.Player.Id] + bet.Amount
+			totalPerUser[userBet.Player.Id] = totalPerUser[userBet.Player.Id] + bet.Amount
 		}
 	}
 
@@ -214,7 +214,7 @@ func (g *Game) GetWinner() *int {
 
 	// Fill pool
 	pool := make([]int, 100)
-	for userID, p := range totalPricePerUser {
+	for userID, p := range totalPerUser {
 		share := (p / totalPrice) * 100
 		for i := 1; i <= int(share); i++ {
 			pool[i-1] = userID
@@ -234,7 +234,7 @@ func (g *Game) GetWinner() *int {
 		if userBet.Player.Id == winningUserId {
 			gameManager.events <- WinnerPickedEvent{
 				Player: *userBet.Player,
-				Amount: totalPricePerUser[pool[randomInt]],
+				Amount: totalPerUser[pool[randomInt]],
 			}
 		}
 	}
