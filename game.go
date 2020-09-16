@@ -11,10 +11,10 @@ import (
 const gameDuration = 60
 
 const (
-	Idle       = 0 	// idle until at least 2 bets
+	Idle       = 0
 	InProgress = 1
 	Ended      = 2
-	WinnerPicked = 3 // Winner picked, starting game in x time
+	WinnerPicked = 3
 )
 
 type Game struct {
@@ -94,6 +94,7 @@ func (gm *GameManager) NewGame() {
 		NewTime:   now,
 		Duration:  gameDuration,
 		BetsMutex: &sync.Mutex{},
+		StateMutex: &sync.Mutex{},
 		UserBets:  make([]UserBet, 0),
 		State: 		Idle,
 	}
@@ -101,9 +102,6 @@ func (gm *GameManager) NewGame() {
 	gm.currentGame = newGame
 
 	gm.mutex.Unlock()
-
-	//Fire event
-	gm.currentGame.SetState(Idle)
 
 	gm.events <- GameEvent{
 		Type: "new-game",
@@ -132,13 +130,12 @@ func (gm *GameManager) StartGame() {
 		Game: gm.currentGame,
 	}
 
-
 	gm.mutex.Unlock()
 
 	log.Println("[GAME] Game Started")
 
 	defer func() {
-		for d := range u.Countdown(u.NewTicker(time.Second), 30*time.Second) {
+		for d := range u.Countdown(u.NewTicker(time.Second), 5*time.Second) {
 			gm.events <- CountDownEvent{
 				TimeLeft: d.Seconds(),
 			}
@@ -245,12 +242,12 @@ func (g *Game) GetWinner() *int {
 	pool := make([]int, 100)
 	for userID, p := range totalPricePerUser {
 		share := (p / totalPrice) * 100
-		for i := 1; i <= int(share); i++ {
-			pool[i-1] = userID
+		for i := 0; i <= int(share); i++ {
+			pool[i] = userID
 		}
 	}
 
-	//log.Printf("[GAME] Pool length: %d, Pool: %v", len(pool), pool)
+	log.Printf("[GAME] Pool length: %d, Pool: %v", len(pool), pool)
 	// Pick random number from pool
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	randomInt := r.Intn(100)
@@ -266,7 +263,7 @@ func (g *Game) GetWinner() *int {
 				Type:   "winner-picked",
 				Game:   *g,
 				Player: userBet.Player,
-				Amount: totalPricePerUser[pool[randomInt]],
+				Amount: totalPricePerUser[winningUserId],
 			}
 		}
 	}

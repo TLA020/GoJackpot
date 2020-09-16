@@ -20,14 +20,15 @@ export default store => {
       switch (event) {
         case "current-users":
           store.commit("$game/SET_CURRENT_USERS", data.users);
-          console.log("SET CURRENT PLAYERS");
           break;
         case "current-game":
           store.commit("$game/SET_GAME", data.game);
           break;
         case "new-game":
-          console.log("new-game");
           store.commit("$game/SET_TIME_LEFT", null);
+          store.commit("$game/SET_GAME", data.game);
+          break;
+        case "start-game":
           store.commit("$game/SET_GAME", data.game);
           break;
         case "bet-placed":
@@ -38,7 +39,7 @@ export default store => {
           break;
         case "winner-picked":
           store.commit("$game/SET_WINNER", data);
-          store.commit("$game/SET_GAME", null);
+          store.commit("$game/SET_GAME", data.game);
           break;
         default:
           return;

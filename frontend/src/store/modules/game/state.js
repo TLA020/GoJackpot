@@ -1,13 +1,9 @@
 export default {
   currentUsers: [],
-  game: null,
-  inGame: [],
-  lastWinner: {},
-  currentWinner: {
-    user: null,
-    amount: null
+  game: {},
+  winner: {
+    user: {},
+    amount: 0
   },
-  currentGame: {},
-  timeLeft: null,
-  pending: true
+  timeLeft: null
 };
