@@ -244,7 +244,7 @@ func (g *Game) GetWinner() *int {
 	for userID, p := range totalPricePerUser {
 		share := (p / totalPrice) * 100
 		for i := startPoint; i <= startPoint + int(share); i++ {
-			pool[i] = userID
+			pool[i-1] = userID
 		}
 		startPoint = int(share)
 	}
