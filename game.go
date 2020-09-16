@@ -11,10 +11,10 @@ import (
 const gameDuration = 60
 
 const (
-	Idle       = 0
+	Idle       = 0 	// idle until at least 2 bets
 	InProgress = 1
 	Ended      = 2
-	WinnerPicked = 3
+	WinnerPicked = 3 // Winner picked, starting game in x time
 )
 
 type Game struct {
