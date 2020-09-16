@@ -135,7 +135,7 @@ func (gm *GameManager) StartGame() {
 	log.Println("[GAME] Game Started")
 
 	defer func() {
-		for d := range u.Countdown(u.NewTicker(time.Second), 5*time.Second) {
+		for d := range u.Countdown(u.NewTicker(time.Second), 30*time.Second) {
 			gm.events <- CountDownEvent{
 				TimeLeft: d.Seconds(),
 			}
@@ -163,8 +163,8 @@ func (gm *GameManager) EndGame() {
 	_ = gm.currentGame.GetWinner()
 
 	defer func() {
-		log.Println("[GAME] starting new game in 15 seconds...")
-		time.Sleep(time.Second * 15)
+		log.Println("[GAME] starting new game in 5 seconds...")
+		time.Sleep(time.Second * 5)
 		gm.NewGame()
 	}()
 }
@@ -265,7 +265,7 @@ func (g *Game) GetWinner() *int {
 				Type:   "winner-picked",
 				Game:   *g,
 				Player: userBet.Player,
-				Amount: totalPricePerUser[winningUserId],
+				Amount: totalPricePerUser[userBet.Player.Id],
 			}
 		}
 	}
