@@ -8,7 +8,14 @@ import (
 	"time"
 )
 
-var gameDuration = 60
+const gameDuration = 60
+
+const (
+	Idle       = 0
+	InProgress = 1
+	Ended      = 2
+	WinnerPicked = 3
+)
 
 type Game struct {
 	ID        int64     `json:"id"`
@@ -17,7 +24,9 @@ type Game struct {
 	EndTime   time.Time `json:"end_time,omitempty"`
 	Duration  int       `json:"duration"`
 	UserBets  []UserBet `json:"userBets"`
+	State     int        `json:"state"`
 	BetsMutex *sync.Mutex
+	StateMutex *sync.Mutex
 }
 
 type GameManager struct {
@@ -86,6 +95,7 @@ func (gm *GameManager) NewGame() {
 		Duration:  gameDuration,
 		BetsMutex: &sync.Mutex{},
 		UserBets:  make([]UserBet, 0),
+		State: 		Idle,
 	}
 
 	gm.currentGame = newGame
@@ -93,6 +103,8 @@ func (gm *GameManager) NewGame() {
 	gm.mutex.Unlock()
 
 	//Fire event
+	gm.currentGame.SetState(Idle)
+
 	gm.events <- GameEvent{
 		Type: "new-game",
 		Game: newGame,
@@ -113,10 +125,13 @@ func (gm *GameManager) StartGame() {
 	gm.mutex.Lock()
 	gm.currentGame.StartTime = time.Now()
 
+	gm.currentGame.SetState(InProgress)
+
 	gm.events <- GameEvent{
 		Type: "start-game",
 		Game: gm.currentGame,
 	}
+
 
 	gm.mutex.Unlock()
 
@@ -138,7 +153,9 @@ func (gm *GameManager) EndGame() {
 	gm.currentGame.EndTime = time.Now()
 	gm.pastGames[gm.currentGame.ID] = gm.currentGame
 
-	gm.events <- GameEvent {
+	gm.currentGame.SetState(Ended)
+
+	gm.events <- GameEvent{
 		Type: "end-game",
 		Game: gm.currentGame,
 	}
@@ -153,6 +170,12 @@ func (gm *GameManager) EndGame() {
 		time.Sleep(time.Second * 15)
 		gm.NewGame()
 	}()
+}
+
+func (g *Game) SetState(state int) {
+	g.StateMutex.Lock()
+	defer g.StateMutex.Unlock()
+	g.State = state
 }
 
 func (g *Game) PlaceBet(player *Player, amount float64) {
@@ -176,9 +199,9 @@ func (g *Game) PlaceBet(player *Player, amount float64) {
 
 	g.BetsMutex.Unlock()
 
-	gameManager.events <- GameEvent {
-		Type: "bet-placed",
-		Game: *gameManager.GetCurrentGame(),
+	gameManager.events <- GameEvent{
+		Type:   "bet-placed",
+		Game:   *gameManager.GetCurrentGame(),
 		Player: player,
 		Amount: amount,
 	}
@@ -238,9 +261,10 @@ func (g *Game) GetWinner() *int {
 
 	for _, userBet := range g.UserBets {
 		if userBet.Player.Id == winningUserId {
-			gameManager.events <- GameEvent {
-				Type: "winner-picked",
-				Game: *g,
+			g.SetState(WinnerPicked)
+			gameManager.events <- GameEvent{
+				Type:   "winner-picked",
+				Game:   *g,
 				Player: userBet.Player,
 				Amount: totalPricePerUser[pool[randomInt]],
 			}

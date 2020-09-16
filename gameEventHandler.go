@@ -4,10 +4,9 @@ import (
 	m "goprac/models"
 )
 
-
 type GameEvent struct {
-	Type string
-	Game Game
+	Type   string
+	Game   Game
 	Player *Player
 	Amount float64
 }
@@ -34,9 +33,9 @@ func handleGameEvents() {
 }
 
 func genericGameEventHandler(event GameEvent) {
-	SendBroadcast(m.NewMessage(event.Type, map[string]interface{} {
-		"type": event.Type,
-		"game": event.Game,
+	SendBroadcast(m.NewMessage(event.Type, map[string]interface{}{
+		"type":   event.Type,
+		"game":   event.Game,
 		"player": event.Player,
 		"amount": event.Amount,
 	}))

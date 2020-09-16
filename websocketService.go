@@ -128,7 +128,7 @@ func onAuthorizeWsClient(msg m.Message, client *m.Client) {
 	client.UserId = int(claims["sub"].(float64))
 	client.Email = claims["email"].(string)
 
-	gameManager.events <- GameEvent {
+	gameManager.events <- GameEvent{
 		Type: "current-game",
 		Game: *gameManager.GetCurrentGame(),
 	}
