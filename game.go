@@ -240,11 +240,13 @@ func (g *Game) GetWinner() *int {
 
 	// Fill pool
 	pool := make([]int, 100)
+	startPoint := 0
 	for userID, p := range totalPricePerUser {
 		share := (p / totalPrice) * 100
-		for i := 0; i <= int(share); i++ {
+		for i := startPoint; i <= startPoint + int(share); i++ {
 			pool[i] = userID
 		}
+		startPoint = int(share)
 	}
 
 	log.Printf("[GAME] Pool length: %d, Pool: %v", len(pool), pool)
