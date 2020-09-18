@@ -3,6 +3,7 @@ module goprac
 go 1.14
 
 require (
+	github.com/360EntSecGroup-Skylar/excelize v1.4.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gofiber/cors v0.2.2
 	github.com/gofiber/fiber v1.14.4

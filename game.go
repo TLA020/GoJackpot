@@ -3,6 +3,7 @@ package main
 import (
 	u "goprac/utils"
 	"log"
+	"math"
 	"math/rand"
 	"sync"
 	"time"
@@ -63,6 +64,9 @@ func NewBet(amount float64) *Bet {
 type UserBet struct {
 	Bets   []*Bet  `json:"bets"`
 	Player *Player `json:"player"`
+	StartTicket int `json:"startTicket"`
+	EndTicket int `json:"endTicket"`
+	Share  float64 `json:"share"`
 }
 
 func NewUserBet(bet *Bet, player *Player) *UserBet {
@@ -70,6 +74,13 @@ func NewUserBet(bet *Bet, player *Player) *UserBet {
 		Bets:   []*Bet{bet},
 		Player: player,
 	}
+}
+
+func (ub UserBet) GetTotalBet() (total float64) {
+	for _, bet := range ub.Bets {
+		total = total + bet.Amount
+	}
+	return
 }
 
 func NewGameManager() *GameManager {
@@ -217,27 +228,51 @@ func (g Game) GetTotalPrice() (totalPrice float64) {
 			totalPrice = totalPrice + bet.Amount
 		}
 	}
-	return totalPrice
+	return
+}
+
+func (g Game) GetTotalPriceOfUsers() (pricePerUser map[int]float64) {
+	pricePerUser = make(map[int]float64)
+
+	for _, userBet := range g.UserBets {
+		for _, bet := range userBet.Bets {
+			pricePerUser[userBet.Player.Id] = pricePerUser[userBet.Player.Id] + bet.Amount
+		}
+	}
+	return
+}
+
+
+func (g *Game) CalculateShares() {
+	// using cents to increase accuracy of 'user-tickets'.
+	g.BetsMutex.Lock()
+	defer g.BetsMutex.Unlock()
+
+	total := math.Round(g.GetTotalPrice())
+	totalCents := total * 100
+	startTicket := 0
+
+	for _, userBet := range g.UserBets {
+		betInCents := int(userBet.GetTotalBet()) * 100
+		userBet.StartTicket = startTicket
+		userBet.EndTicket = startTicket + betInCents
+		userBet.Share = (100 / totalCents) * float64(betInCents)
+
+		startTicket += betInCents +1
+		//log.Printf("[CALC-SHARES] User: %d | StartTicket: %d | EndTicket: %d | Share: %f |", userBet.Player.Id, userBet.StartTicket, userBet.EndTicket, userBet.Share)
+	}
 }
 
 func (g *Game) GetWinner() *int {
-
 	log.Print("[GAME] picking a winner...")
-	totalPricePerUser := make(map[int]float64)
 
 	g.BetsMutex.Lock()
 	defer g.BetsMutex.Unlock()
 
 	totalPrice := g.GetTotalPrice()
-
-	for _, userBet := range g.UserBets {
-		for _, bet := range userBet.Bets {
-			totalPricePerUser[userBet.Player.Id] = totalPricePerUser[userBet.Player.Id] + bet.Amount
-		}
-	}
+	totalPricePerUser := g.GetTotalPriceOfUsers()
 
 	log.Printf("[GAME] Total price: %.2f", totalPrice)
-
 	// Fill pool
 	pool := make([]int, 100)
 	startPoint := 0
