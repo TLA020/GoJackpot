@@ -226,18 +226,6 @@ func (g Game) GetTotalPrice() (totalPrice float64) {
 	return
 }
 
-func (g Game) GetTotalPriceOfUsers() (pricePerUser map[int]float64) {
-	pricePerUser = make(map[int]float64)
-
-	for _, userBet := range g.UserBets {
-		for _, bet := range userBet.Bets {
-			pricePerUser[userBet.Player.Id] = pricePerUser[userBet.Player.Id] + bet.Amount
-		}
-	}
-	return
-}
-
-
 func (g *Game) CalculateShares() {
 	g.BetsMutex.Lock()
 	defer func() {
