@@ -34,6 +34,9 @@ export default store => {
         case "bet-placed":
           store.commit("$game/SET_GAME", data.game);
           break;
+        case "shares-updated":
+          store.commit("$game/SET_GAME", data.game);
+          break;
         case "time-left":
           store.commit("$game/SET_TIME_LEFT", data.timeLeft);
           break;

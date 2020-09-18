@@ -83,9 +83,9 @@ func NewBet(amount float64) *Bet {
 type UserBet struct {
 	Bets   []*Bet  `json:"bets"`
 	Player *Player `json:"player"`
-	StartTicket int `json:"startTicket"`
-	EndTicket int `json:"endTicket"`
 	Share  float64 `json:"share"`
+	StartTicket int `json:"startTicket,omitempty"`
+	EndTicket int `json:"endTicket,omitempty"`
 }
 
 func NewUserBet(bet *Bet, player *Player) *UserBet {

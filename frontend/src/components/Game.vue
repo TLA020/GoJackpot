@@ -1,6 +1,5 @@
 <template>
   <div>
-    GAMESTATE: {{ gameState }}
     <div v-if="gameState === 'winnerPicked'">
       <h2>WINNER: {{ winner.user.email }}</h2>
       <h3>WON: €{{ winner.amount }}</h3>
@@ -25,33 +24,36 @@
           >
             <v-expansion-panel-header>
               <v-row align="center" class="spacer" no-gutters>
-                <v-col cols="4" sm="2" md="1">
+                <v-col cols="2">
                   <v-avatar size="36px">
                     <img alt="Avatar" :src="getAvatar(userBet.player.email)" />
                   </v-avatar>
                 </v-col>
 
-                <v-col class="hidden-xs-only" sm="5" md="3">
+                <v-col cols="3">
                   <strong v-html="userBet.player.email"></strong>
                 </v-col>
 
-                <v-col class="text-no-wrap" cols="5" sm="3">
+                <v-col class="text-no-wrap" cols="3">
                   <v-chip
-                    :color="`lighten-4`"
+                    color="light"
                     class="ml-0 mr-2 black--text"
                     label
                   >
-                    <strong class="mr-1">Total bet: </strong> €{{
+                    <strong class="mr-1"> €{{
                       userBet.bets
                         .map(o => o.amount)
                         .reduce((a, c) => {
                           return a + c;
                         })
                     }},-
+                     </strong>
                   </v-chip>
                 </v-col>
-
-                <v-col>
+                  <v-col cols="3">
+                    Chance {{userBet.share.toFixed(2)}}%
+                  </v-col>
+                <v-col cols="1">
                   <span class="float-right"
                     >({{ userBet.bets.length }})
                   </span></v-col
