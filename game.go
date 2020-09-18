@@ -244,66 +244,52 @@ func (g Game) GetTotalPriceOfUsers() (pricePerUser map[int]float64) {
 
 
 func (g *Game) CalculateShares() {
-	// using cents to increase accuracy of 'user-tickets'.
 	g.BetsMutex.Lock()
-	defer g.BetsMutex.Unlock()
+	defer func() {
+		gameManager.events <- GameEvent{
+			Type:   "shares-updated",
+			Game:   *g,
+		}
+		g.BetsMutex.Unlock()
+	}()
 
+	// using cents to increase accuracy of 'user-tickets'.
 	total := math.Round(g.GetTotalPrice())
 	totalCents := total * 100
 	startTicket := 0
 
-	for _, userBet := range g.UserBets {
-		betInCents := int(userBet.GetTotalBet()) * 100
-		userBet.StartTicket = startTicket
-		userBet.EndTicket = startTicket + betInCents
-		userBet.Share = (100 / totalCents) * float64(betInCents)
+	log.Printf("[CALC-SHARES] Total pot: $%f", total)
+
+	for _, ub := range g.UserBets {
+		betInCents := int(ub.GetTotalBet()) * 100
+		ub.StartTicket = startTicket
+		ub.EndTicket = startTicket + betInCents
+		ub.Share = (100 / totalCents) * float64(betInCents)
 
 		startTicket += betInCents +1
-		//log.Printf("[CALC-SHARES] User: %d | StartTicket: %d | EndTicket: %d | Share: %f |", userBet.Player.Id, userBet.StartTicket, userBet.EndTicket, userBet.Share)
+		log.Printf("[CALC-SHARES] User: %d | StartTicket: %d | EndTicket: %d | Share: %f |", ub.Player.Id, ub.StartTicket, ub.EndTicket, ub.Share)
 	}
 }
 
-func (g *Game) GetWinner() *int {
+func (g *Game) GetWinner()  {
 	log.Print("[GAME] picking a winner...")
-
+	g.CalculateShares() // extra safety, might be unnecessary -.-'
 	g.BetsMutex.Lock()
 	defer g.BetsMutex.Unlock()
 
-	totalPrice := g.GetTotalPrice()
-	totalPricePerUser := g.GetTotalPriceOfUsers()
-
-	log.Printf("[GAME] Total price: %.2f", totalPrice)
-	// Fill pool
-	pool := make([]int, 100)
-	startPoint := 0
-	for userID, p := range totalPricePerUser {
-		share := (p / totalPrice) * 100
-		for i := startPoint; i <= (startPoint + int(share)) ; i++ {
-			pool[i] = userID
-		}
-		startPoint = int(share)
-	}
-
-	log.Printf("[GAME] Pool length: %d, Pool: %v", len(pool), pool)
-	// Pick random number from pool
+	totalTickets := int(math.Round(g.GetTotalPrice()) * 100)
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	randomInt := r.Intn(100)
-	winningUserId := pool[randomInt]
-
-	log.Printf("[GAME] Winner userId: %v", winningUserId)
-	log.Printf("====================================")
+	winningTicket := r.Intn(totalTickets)
 
 	for _, userBet := range g.UserBets {
-		if userBet.Player.Id == winningUserId {
+		if userBet.StartTicket <= winningTicket && userBet.EndTicket >= winningTicket {
 			g.SetState(WinnerPicked)
 			gameManager.events <- GameEvent{
 				Type:   "winner-picked",
 				Game:   *g,
 				Player: userBet.Player,
-				Amount: totalPricePerUser[userBet.Player.Id],
+				Amount: g.GetTotalPrice() - userBet.GetTotalBet(),
 			}
 		}
 	}
-
-	return &pool[randomInt]
 }
