@@ -11,11 +11,9 @@ var testGame = func(c *fiber.Ctx) {
 }
 
 func launchTestGame() {
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 3; i++ {
 		fakeBetByUserId(rand.Int() *20 +5)
 	}
-
-	gameManager.GetCurrentGame().CalculateShares()
 }
 
 // faking users/bets to speed up test process.
