@@ -1,2 +1,2 @@
-# GoPractice
-Just playing around with go
+Go project 
+
