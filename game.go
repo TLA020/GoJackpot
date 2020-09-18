@@ -132,27 +132,22 @@ func (gm *GameManager) GetCurrentGame() *Game {
 
 func (gm *GameManager) StartGame() {
 	gm.mutex.Lock()
-	gm.currentGame.StartTime = time.Now()
-
-	gm.currentGame.SetState(InProgress)
-
-	gm.events <- GameEvent{
-		Type: "start-game",
-		Game: gm.currentGame,
-	}
-
-	gm.mutex.Unlock()
-
-	log.Println("[GAME] Game Started")
-
 	defer func() {
 		for d := range u.Countdown(u.NewTicker(time.Second), 30*time.Second) {
 			gm.events <- CountDownEvent{
 				TimeLeft: d.Seconds(),
 			}
 		}
+		gm.mutex.Unlock()
 		gm.EndGame()
 	}()
+
+	gm.currentGame.StartTime = time.Now()
+	gm.currentGame.SetState(InProgress)
+	gm.events <- GameEvent{
+		Type: "start-game",
+		Game: gm.currentGame,
+	}
 }
 
 func (gm *GameManager) EndGame() {
