@@ -166,7 +166,7 @@ func (gm *GameManager) EndGame() {
 	gm.mutex.Unlock()
 
 	log.Print("[GAME] Has ended, no more bets!")
-	_ = gm.currentGame.GetWinner()
+	gm.currentGame.GetWinner()
 
 	defer func() {
 		log.Println("[GAME] starting new game in 5 seconds...")
