@@ -4,12 +4,13 @@ import (
 	u "goprac/utils"
 	"log"
 	"math"
-	"math/rand"
 	"sync"
 	"time"
 )
 
 const gameDuration = 60
+var proof *Proof
+
 
 const (
 	Idle       = 0
@@ -26,6 +27,7 @@ type Game struct {
 	Duration  int       `json:"duration"`
 	UserBets  []UserBet `json:"userBets"`
 	State     int        `json:"state"`
+
 	BetsMutex *sync.Mutex
 	StateMutex *sync.Mutex
 }
@@ -33,7 +35,7 @@ type Game struct {
 type GameManager struct {
 	mutex       sync.Mutex
 	pastGames   map[int64]Game
-	currentGame Game
+	currentGame *Game
 	events      chan interface{}
 }
 
@@ -41,7 +43,7 @@ func (gm *GameManager) GetCurrentGame() *Game {
 	gm.mutex.Lock()
 	defer gm.mutex.Unlock()
 
-	return &gm.currentGame
+	return gm.currentGame
 }
 
 func NewGameManager() *GameManager {
@@ -109,7 +111,7 @@ func (gm *GameManager) NewGame() {
 	now := time.Now()
 	gameID := now.UnixNano()
 
-	newGame := Game {
+	newGame := &Game {
 		ID:        gameID,
 		NewTime:   now,
 		Duration:  gameDuration,
@@ -119,10 +121,14 @@ func (gm *GameManager) NewGame() {
 		State: 		Idle,
 	}
 
+	proof, _ = NewProof(nil, nil, gameID)
+	randomNr, _ := proof.Calculate()
+	log.Printf("[PROOF] Random number used to pick winner: %.2f", randomNr)
+
 	gm.currentGame = newGame
 	gm.events <- GameEvent{
 		Type: "new-game",
-		Game: newGame,
+		Game: *newGame,
 	}
 
 	log.Println("[GAME] New game started")
@@ -144,8 +150,9 @@ func (gm *GameManager) StartGame() {
 	gm.currentGame.SetState(InProgress)
 	gm.events <- GameEvent{
 		Type: "start-game",
-		Game: gm.currentGame,
+		Game: *gm.currentGame,
 	}
+
 	gm.mutex.Unlock()
 }
 
@@ -153,13 +160,13 @@ func (gm *GameManager) EndGame() {
 	gm.mutex.Lock()
 
 	gm.currentGame.EndTime = time.Now()
-	gm.pastGames[gm.currentGame.ID] = gm.currentGame
+	gm.pastGames[gm.currentGame.ID] = *gm.currentGame
 
 	gm.currentGame.SetState(Ended)
 
 	gm.events <- GameEvent {
 		Type: "end-game",
-		Game: gm.currentGame,
+		Game: *gm.currentGame,
 	}
 
 	gm.mutex.Unlock()
@@ -169,7 +176,7 @@ func (gm *GameManager) EndGame() {
 	defer func() {
 		log.Println("[GAME] starting new game in 5 seconds...")
 		time.Sleep(time.Second * 5)
-		gm.NewGame()
+	    gm.NewGame()
 	}()
 }
 
@@ -180,7 +187,7 @@ func (g *Game) SetState(state int) {
 }
 
 func (g *Game) PlaceBet(player *Player, amount float64) {
-	log.Printf("[GAME] NEW BET:($%.2f) FROM => Id: %d ", amount, player.Id)
+ 	log.Printf("[GAME] NEW BET:($%.2f) FROM => Id: %d ", amount, player.Id)
 	g.BetsMutex.Lock()
 
 	bet := NewBet(amount)
@@ -209,7 +216,7 @@ func (g *Game) PlaceBet(player *Player, amount float64) {
 
 	go g.CalculateShares()
 
-	log.Printf("[GAME] TOTAL BETS:($%.2f) ", g.GetTotalPrice())
+    log.Printf("[GAME] TOTAL BETS:($%.2f) ", g.GetTotalPrice())
 
 	if g.StartTime.IsZero() && len(g.UserBets) >= 2 {
 		log.Print("[GAME] Enough players starting game...")
@@ -243,7 +250,7 @@ func (g *Game) CalculateShares() {
 
 	log.Printf("[CALC-SHARES] Total pot: $%f", total)
 
-	for i, _ := range g.UserBets {
+	for i := range g.UserBets {
 		ub := &g.UserBets[i]
 
 		betInCents := int(ub.GetTotalBet()) * 100
@@ -252,7 +259,7 @@ func (g *Game) CalculateShares() {
 		ub.Share = (100 / totalCents) * float64(betInCents)
 
 		startTicket += betInCents +1
-		//log.Printf("[CALC-SHARES] User: %d | StartTicket: %d | EndTicket: %d | Share: %f |", ub.Player.Id, ub.StartTicket, ub.EndTicket, ub.Share)
+	//	log.Printf("[CALC-SHARES] User: %d | StartTicket: %d | EndTicket: %d | Share: %f |", ub.Player.Id, ub.StartTicket, ub.EndTicket, ub.Share)
 	}
 }
 
@@ -262,8 +269,11 @@ func (g *Game) GetWinner()  {
 	defer g.BetsMutex.Unlock()
 
 	totalTickets := int(math.Round(g.GetTotalPrice()) * 100)
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	winningTicket := r.Intn(totalTickets)
+
+	randomNr, _ := proof.Calculate()
+	winningTicket := int(randomNr / 100 * float64(totalTickets))
+
+	log.Printf("[GAME] winning ticket: %d", winningTicket)
 
 	for _, userBet := range g.UserBets {
 		if userBet.StartTicket <= winningTicket && userBet.EndTicket >= winningTicket {
