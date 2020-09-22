@@ -1,8 +1,8 @@
 <template>
   <v-container fluid>
     <GameStatsBar></GameStatsBar>
-    <v-col cols="6"> <Game></Game> </v-col>
-    <v-col cols="6"> <Bet></Bet> </v-col>
+    <v-col lg="6" sm="12"> <Game></Game> </v-col>
+    <v-col lg="6" sm="12"> <Bet></Bet> </v-col>
   </v-container>
 </template>
 
