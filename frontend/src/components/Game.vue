@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <v-card shaped class="darken-1 pa-4">
+    <v-card-title>Jackpot {{totalPot}}</v-card-title>
     <div v-if="gameState === 'winnerPicked'">
       <h2>WINNER: {{ winner.user.email }}</h2>
       <h3>WON: €{{ winner.amount }}</h3>
@@ -14,8 +15,7 @@
 
     <div v-if="gameState === 'inProgress'">
       <v-row>
-        <h2 class="mr-4" v-if="totalPot">Total: €{{ totalPot }}</h2>
-        <h2 v-if="timeLeft">Time Left: {{ timeLeft }}</h2>
+
         <v-expansion-panels popout>
           <v-expansion-panel
             v-for="(userBet, i) in game.userBets"
@@ -76,7 +76,7 @@
         </v-expansion-panels>
       </v-row>
     </div>
-  </div>
+  </v-card>
 </template>
 
 <script>
@@ -114,7 +114,7 @@ export default {
     totalPot() {
       let total = 0;
       if (!this.game.userBets) {
-        return 0;
+        return "";
       }
       this.game.userBets.forEach(f => {
         total += f.bets
@@ -123,7 +123,7 @@ export default {
             return a + c;
           });
       });
-      return total;
+      return `$${total},-`;
     }
   }
 };

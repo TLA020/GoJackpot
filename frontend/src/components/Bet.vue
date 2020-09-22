@@ -1,55 +1,50 @@
 <template>
-  <v-form ref="form">
-    <v-row>
-      <v-slider
-        v-model="amount"
-        append-icon="mdi-currency-usd"
-        prepend-icon="mdi-currency-usd-off"
-        class="align-center col-8 p-4"
-        :max="100"
-        thumb-label="always"
-        :min="1"
-        hide-details
-      >
-      </v-slider>
-    </v-row>
-
-    <v-btn color="warning" class="mr-4">
-      Reset
-    </v-btn>
-    <v-btn :disabled="false" color="success" :loading="placingBet" @click="placeBet()">
-      Place bet
-    </v-btn>
-  </v-form>
+  <v-card shaped class="darken-1">
+    <div class="pa-4">
+      <v-card-title>Place a bet</v-card-title>
+      <v-form ref="form" class="mt-4">
+        <v-row>
+          <v-slider
+            v-model="amount"
+            append-icon="mdi-currency-usd"
+            prepend-icon="mdi-currency-usd-off"
+            class="align-center col-12 p-4"
+            :max="250"
+            thumb-label="always"
+            :min="1"
+            hide-details
+          >
+          </v-slider>
+        </v-row>
+        <div class="text-right mr-4">
+        <v-btn color="red" class="mr-4">
+          Reset
+        </v-btn>
+        <v-btn
+          :disabled="false"
+          color="secondary"
+          :loading="placingBet"
+          @click="placeBet"
+        >
+          Place bet
+        </v-btn>
+        </div>
+      </v-form>
+    </div>
+  </v-card>
 </template>
 
 <script>
 export default {
   name: "Bet",
-  props: {
-    value: {
-      type: Number,
-      required: false,
-      default: 0
-    }
-  },
 
   data() {
     return {
       placingBet: false,
-    }
+      amount: 0
+    };
   },
 
-  computed: {
-    amount: {
-      get() {
-        return this.value;
-      },
-      set(val) {
-        this.$emit("input", val)
-      }
-    }
-  },
 
   methods: {
     placeBet() {
@@ -60,7 +55,7 @@ export default {
       });
       this.placingBet = false;
       this.amount = 0;
-    },
+    }
   }
 };
 </script>
