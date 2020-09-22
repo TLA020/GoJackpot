@@ -1,6 +1,6 @@
 <template>
   <v-card shaped class="darken-1 pa-4">
-    <v-card-title>Jackpot {{totalPot}}</v-card-title>
+    <v-card-title>Jackpot {{totalPot}}  {{timeLeft}}</v-card-title>
     <div v-if="gameState === 'winnerPicked'">
       <h2>WINNER: {{ winner.user.email }}</h2>
       <h3>WON: €{{ winner.amount }}</h3>
