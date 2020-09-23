@@ -50,7 +50,7 @@ export default {
     placeBet() {
       this.placingBet = true;
       this.$store.dispatch("sendSocket", {
-        event: "place-bet",
+        type: "place-bet",
         data: { amount: this.amount }
       });
       this.placingBet = false;

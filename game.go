@@ -11,7 +11,6 @@ import (
 const gameDuration = 60
 var proof *Proof
 
-
 const (
 	Idle       = 0
 	InProgress = 1

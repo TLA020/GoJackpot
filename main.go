@@ -13,6 +13,7 @@ import (
 
 var stopChan = make(chan bool)
 var gameManager = NewGameManager()
+var chat = NewChat()
 
 func main() {
 	app := fiber.New()
@@ -36,6 +37,7 @@ func main() {
 
 	log.Printf("Starting HTTP-server on port %s", listenPort)
 	go handleGameEvents()
+	go chat.handleMessages()
 	gameManager.NewGame()
 
 	err := app.Listen(listenPort)

@@ -13,7 +13,7 @@ var clientsMutex = &sync.Mutex{}
 
 var clients = make([]*m.Client, 0)
 var register = make(chan *m.Client)
-var broadcast = make(chan m.Message)
+var broadcast = make(chan m.Event)
 var unregister = make(chan *m.Client)
 
 func runHub() {
@@ -85,31 +85,38 @@ func onClientsUpdate() {
 	}
 }
 
-func handleMessages(client *m.Client, message []byte) {
-	msg := m.Message{}
-	if err := json.Unmarshal(message, &msg); err != nil {
+func handleMessages(client *m.Client, msg []byte) {
+	event := m.Event{}
+	if err := json.Unmarshal(msg, &event); err != nil {
 		log.Print(err)
 		return
 	}
 
 	// temp move to event handler.
-	switch msg.Event {
+	switch event.Type {
 	case "auth":
-		onAuthorizeWsClient(msg, client)
+		onAuthorizeWsClient(event, client)
 	case "place-bet":
-		onBetPlaced(msg, client)
+		onBetPlaced(event, client)
+	case "chat-message":
+		handleChatMsg(event, client)
 	default:
 		log.Printf("default")
 	}
 }
 
-func onBetPlaced(msg m.Message, conn *m.Client) {
+func handleChatMsg(e m.Event, c *m.Client) {
+	msg := NewMessage(e.Data["Message"].(string), c.Email, c.Email) // twice email because username not yet implemented
+	chat.incoming <- msg
+}
+
+func onBetPlaced(msg m.Event, conn *m.Client) {
 	amount := msg.Data["amount"].(float64)
 	player := NewPlayer(conn.UserId, conn.Email)
 	gameManager.GetCurrentGame().PlaceBet(player, amount)
 }
 
-func onAuthorizeWsClient(msg m.Message, client *m.Client) {
+func onAuthorizeWsClient(msg m.Event, client *m.Client) {
 	defer onClientsUpdate()
 
 	acc := &m.Account{}
@@ -136,6 +143,6 @@ func onAuthorizeWsClient(msg m.Message, client *m.Client) {
 	log.Printf("[WS] Client now belongs to userId: %v", client.UserId)
 }
 
-func SendBroadcast(msg m.Message) {
-	broadcast <- msg
+func SendBroadcast(event m.Event) {
+	broadcast <- event
 }

@@ -14,9 +14,9 @@ func (c *Client) SendMessage(msg interface{}) error {
 	return c.Conn.WriteJSON(msg)
 }
 
-type Message struct {
-	Event string                 `json:"event"`
-	Data  map[string]interface{} `json:"data"`
+type Event struct {
+	Type string                 `json:"event"`
+	Data map[string]interface{} `json:"data"`
 }
 
 type WsAuthEvent struct {
@@ -24,9 +24,9 @@ type WsAuthEvent struct {
 	Data Account `json:"data"`
 }
 
-func NewMessage(event string, data map[string]interface{}) Message {
-	return Message{
-		Event: event,
-		Data:  data,
+func NewEvent(event string, data map[string]interface{}) Event {
+	return Event{
+		Type: event,
+		Data: data,
 	}
 }

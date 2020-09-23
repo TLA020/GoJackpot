@@ -21,7 +21,7 @@ export default new Vuex.Store({
 
       // eslint-disable-next-line no-prototype-builtins
       if (state.$auth.user) {
-        Vue.$socket.sendObj({ event: "auth", data: state.$auth.user });
+        Vue.$socket.sendObj({ type: "auth", data: state.$auth.user });
       }
       state.socket.isConnected = true;
     },

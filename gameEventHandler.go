@@ -5,8 +5,8 @@ import (
 )
 
 type GameEvent struct {
-	Type   string
-	Game   Game
+	Type    string
+	Game    Game
 	Player *Player
 	Amount float64
 }
@@ -33,7 +33,7 @@ func handleGameEvents() {
 }
 
 func genericGameEventHandler(event GameEvent) {
-	SendBroadcast(m.NewMessage(event.Type, map[string]interface{}{
+	SendBroadcast(m.NewEvent(event.Type, map[string]interface{}{
 		"type":   event.Type,
 		"game":   event.Game,
 		"player": event.Player,
@@ -42,13 +42,14 @@ func genericGameEventHandler(event GameEvent) {
 }
 
 func currentUsersHandler(clients []*m.Client) {
-	SendBroadcast(m.NewMessage("current-users", map[string]interface{}{
+	SendBroadcast(m.NewEvent("current-users", map[string]interface{}{
 		"users": clients,
 	}))
 }
 
 func countDownHandler(timeLeft float64) {
-	SendBroadcast(m.NewMessage("time-left", map[string]interface{}{
+	SendBroadcast(m.NewEvent("time-left", map[string]interface{}{
 		"timeLeft": timeLeft,
 	}))
 }
+
