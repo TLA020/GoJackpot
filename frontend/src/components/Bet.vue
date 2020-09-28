@@ -17,19 +17,16 @@
           </v-slider>
         </v-row>
         <div class="text-right mr-4">
-        <v-btn
-          :disabled="false"
-          color="secondary"
-          class="mr-4"
-          :loading="placingBet"
-          @click="placeBet"
-        >
-          Place bet
-        </v-btn>
           <v-btn
-                  color="red"
-                  @click="fakeBet"
+            :disabled="false"
+            color="secondary"
+            class="mr-4"
+            :loading="placingBet"
+            @click="placeBet"
           >
+            Place bet
+          </v-btn>
+          <v-btn color="red" @click="fakeBet">
             Fake bets
           </v-btn>
         </div>
@@ -48,7 +45,6 @@ export default {
       amount: 0
     };
   },
-
 
   methods: {
     placeBet() {
