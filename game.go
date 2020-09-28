@@ -1,6 +1,7 @@
 package main
 
 import (
+	m "goprac/models"
 	u "goprac/utils"
 	"log"
 	"math"
@@ -35,7 +36,7 @@ type GameManager struct {
 	mutex       sync.Mutex
 	pastGames   map[int64]Game
 	currentGame *Game
-	events      chan interface{}
+	events      chan m.Event
 }
 
 func (gm *GameManager) GetCurrentGame() *Game {
@@ -49,11 +50,11 @@ func NewGameManager() *GameManager {
 	return &GameManager{
 		mutex:     sync.Mutex{},
 		pastGames: make(map[int64]Game),
-		events:    make(chan interface{}),
+		events:    make(chan m.Event),
 	}
 }
 
-func (gm *GameManager) Events() chan interface{} {
+func (gm *GameManager) Events() chan m.Event {
 	return gm.events
 }
 
@@ -189,6 +190,12 @@ func (g *Game) PlaceBet(player *Player, amount float64) {
  	log.Printf("[GAME] NEW BET:($%.2f) FROM => Id: %d ", amount, player.Id)
 	g.BetsMutex.Lock()
 
+ 	if g.State != InProgress && g.State != Idle {
+ 		// betting not allowed in this state
+ 		g.BetsMutex.Unlock()
+ 		return
+	}
+
 	bet := NewBet(amount)
 	// lookup current user bet if exist.
 	found := false
@@ -279,7 +286,6 @@ func (g *Game) GetWinner()  {
 		if userBet.StartTicket <= winningTicket && userBet.EndTicket >= winningTicket {
 			g.SetState(WinnerPicked)
 			gameManager.events <- WinnerPickedEvent{
-				Type:   "winner-picked",
 				Player: userBet.Player,
 				Ticket: winningTicket,
 			    Percentage: winningPercentage,

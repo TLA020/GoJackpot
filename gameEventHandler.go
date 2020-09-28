@@ -4,72 +4,62 @@ import (
 	m "goprac/models"
 )
 
+// generic struct, can be used for multiple game-events, like: new-game
 type GameEvent struct {
-	Type    string
-	Game    Game
-	Player *Player
-	Amount float64
+	Type    string  `json:"type"`
+	Game    Game	`json:"game"`
+	Player  *Player	`json:"player"`
+	Amount  float64	`json:"amount"`
 }
 
+func (e GameEvent) GetType() string {
+	return e.Type
+}
+
+// raises when winner picked
 type WinnerPickedEvent struct {
-	Type string
-	Player *Player
-	Amount float64
-	Ticket int
-	Percentage float64
+	Player 		*Player `json:"player"`
+	Amount 		float64 `json:"amount"`
+	Ticket 		int 	`json:"ticket"`
+	Percentage  float64 `json:"percentage"`
 }
 
+func (e WinnerPickedEvent) GetType() string {
+	return "winner-picked"
+}
+
+// raised when new bet placed by user
+type BetPlacedEvent struct {
+	Player 		*Player	`json:"player"`
+	Amount 		float64	`json:"amount"`
+}
+
+func (e BetPlacedEvent) GetType() string {
+	return "bet-placed"
+}
+
+// raised when current connections / users changed
 type CurrentUsersEvent struct {
 	Clients []*m.Client
 }
 
+func (e CurrentUsersEvent) GetType() string {
+	return "current-users"
+}
+
+// raised when game started to emit time-left.
 type CountDownEvent struct {
-	TimeLeft float64
+	TimeLeft float64 `json:"timeLeft"`
+}
+
+func (e CountDownEvent) GetType() string {
+	return "time-left"
 }
 
 func handleGameEvents() {
 	for event := range gameManager.Events() {
-		switch e := event.(type) {
-		case GameEvent:
-			genericGameEventHandler(e)
-		case WinnerPickedEvent:
-			winnerPickedEventHandler(e)
-		case CurrentUsersEvent:
-			currentUsersHandler(e.Clients)
-		case CountDownEvent:
-			countDownHandler(e.TimeLeft)
-		}
+		SendBroadcast(event)
 	}
 }
 
-func genericGameEventHandler(event GameEvent) {
-	SendBroadcast(m.NewEvent(event.Type, map[string]interface{}{
-		"type":   event.Type,
-		"game":   event.Game,
-		"player": event.Player,
-		"amount": event.Amount,
-	}))
-}
-func winnerPickedEventHandler(event WinnerPickedEvent) {
-	SendBroadcast(m.NewEvent(event.Type, map[string]interface{}{
-		"type":   event.Type,
-		"player": event.Player,
-		"amount": event.Amount,
-		"ticket": event.Ticket,
-		"percentage": event.Percentage,
-	}))
-}
-
-
-func currentUsersHandler(clients []*m.Client) {
-	SendBroadcast(m.NewEvent("current-users", map[string]interface{}{
-		"users": clients,
-	}))
-}
-
-func countDownHandler(timeLeft float64) {
-	SendBroadcast(m.NewEvent("time-left", map[string]interface{}{
-		"timeLeft": timeLeft,
-	}))
-}
 

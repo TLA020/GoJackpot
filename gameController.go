@@ -2,7 +2,9 @@ package main
 
 import (
 	"github.com/gofiber/fiber"
+	"github.com/goombaio/namegenerator"
 	"math/rand"
+	"time"
 )
 
 var testGame = func(c *fiber.Ctx) {
@@ -19,6 +21,8 @@ func launchTestGame() {
 // faking users/bets to speed up test process.
 func fakeBetByUserId(userId int) {
 	fakeBet := (rand.Float64() * 100) + 5
-	fakePlayer := NewPlayer(userId, "")
+	seed := time.Now().UTC().UnixNano()
+	nameGenerator := namegenerator.NewNameGenerator(seed)
+	fakePlayer := NewPlayer(userId, nameGenerator.Generate())
 	gameManager.GetCurrentGame().PlaceBet(fakePlayer, fakeBet)
 }

@@ -78,6 +78,7 @@ export default {
           this.state = "spinning";
           this.animate(Date.now(), false, spinEase, 10000, 0, targetRadian).then(() => {
             this.$emit("stopped");
+            this.state = "winner-picked";
           });
         }, 1000);
       });
@@ -169,12 +170,22 @@ export default {
         );
       } else {
         this.canvas.fillStyle = this.fontColor ?? "black";
-        this.canvas.font = this.font ?? "bold 36px serif";
+        this.canvas.font = this.font ?? "bold 24px serif";
         this.canvas.fillText(
           `$${this.total.toFixed(2)}`,
           this.width / 2,
           this.height / 2
         );
+
+        if (this.timeLeft && this.state !== "winner-picked") {
+          this.canvas.font = this.font ?? "bold 36px serif";
+          this.canvas.fillText(`${this.timeLeft <= 1 ? "GET READY!" : this.timeLeft}`, this.width / 2, this.height / 2 - 40)
+        }
+
+        if (this.state === "winner-picked" && this.winnerText) {
+          this.canvas.font = this.font ?? "25px serif";
+          this.canvas.fillText(this.winnerText, this.width / 2, this.height / 2 - 40)
+        }
       }
 
       // this.canvas.drawImage(this.ticker, (this.width / 2) - (this.ticker.width / 2), 10);

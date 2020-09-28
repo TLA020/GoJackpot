@@ -1,17 +1,23 @@
 <template>
   <v-card shaped class="darken-1 pa-4">
-    <v-card-title> {{ timeLeft }}</v-card-title>
+    <v-card-title> Jackpot</v-card-title>
     <div>
       <div id="wheel">
         <JackpotWheel
           ref="wheel"
           :pool="pool"
           :offset-degrees="270"
-          font-color="black"
+          font-color="white"
           :idle-speed="1"
           :chart-width="60"
+          :time-left="timeLeft"
           @stopped="onStopped"
+          :winner-text="winnerText"
         ></JackpotWheel>
+      </div>
+
+      <div v-if="!userBets">
+        Place bets
       </div>
 
       <v-expansion-panels popout>
@@ -72,10 +78,14 @@ export default {
   name: "Game",
   components: { JackpotWheel },
 
+  data: () => ({
+      winnerText: ''
+  }),
+
   mounted() {
     this.$socketEvent("winner-picked", (res) => {
-      console.log(res)
       this.$refs.wheel.spin(res.percentage)
+      this.winnerText = res.player.email + " wins!";
     });
   },
 

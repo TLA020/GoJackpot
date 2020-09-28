@@ -11,6 +11,16 @@ export default {
       default: () => []
     },
 
+    timeLeft: {
+      type: Number,
+      default: () => 0
+    },
+
+    winnerText: {
+      type: String,
+      default: () => null
+    },
+
     offsetDegrees: {
       type: Number,
       default: () => 0

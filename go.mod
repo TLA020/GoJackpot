@@ -10,6 +10,7 @@ require (
 	github.com/gofiber/jwt v0.2.0
 	github.com/gofiber/template v1.5.5 // indirect
 	github.com/gofiber/websocket v0.5.1
+	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/jinzhu/gorm v1.9.16

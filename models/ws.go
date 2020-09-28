@@ -10,23 +10,29 @@ type Client struct {
 	Email  string
 }
 
-func (c *Client) SendMessage(msg interface{}) error {
+type Event interface {
+	GetType() string
+}
+
+func (c *Client) SendMessage(event Event) error {
+	msg := map[string]interface{} {
+		"type": event.GetType(),
+		"data": event,
+	}
+
 	return c.Conn.WriteJSON(msg)
 }
 
-type Event struct {
+type IncomingMessage struct {
 	Type string                 `json:"type"`
 	Data map[string]interface{} `json:"data"`
 }
 
-type WsAuthEvent struct {
+type WsAuthRequest struct {
 	Name string  `json:"name"`
 	Data Account `json:"data"`
 }
 
-func NewEvent(event string, data map[string]interface{}) Event {
-	return Event{
-		Type: event,
-		Data: data,
-	}
-}
+
+
+

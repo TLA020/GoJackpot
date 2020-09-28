@@ -86,7 +86,7 @@ func onClientsUpdate() {
 }
 
 func handleMessages(client *m.Client, msg []byte) {
-	event := m.Event{}
+	event := m.IncomingMessage{}
 	if err := json.Unmarshal(msg, &event); err != nil {
 		log.Print(err)
 		return
@@ -98,25 +98,25 @@ func handleMessages(client *m.Client, msg []byte) {
 		onAuthorizeWsClient(event, client)
 	case "place-bet":
 		onBetPlaced(event, client)
-	case "chat-message":
-		handleChatMsg(event, client)
+	//case "chat-message":
+	//	handleChatMsg(event, client)
 	default:
 		log.Printf("default")
 	}
 }
 
-func handleChatMsg(e m.Event, c *m.Client) {
-	msg := NewMessage(e.Data["Message"].(string), c.Email, c.Email) // twice email because username not yet implemented
-	chat.incoming <- msg
-}
+//func handleChatMsg(e m.Event, c *m.Client) {
+//	msg := NewMessage(e.Data["Message"].(string), c.Email, c.Email) // twice email because username not yet implemented
+//	chat.incoming <- msg
+//}
 
-func onBetPlaced(msg m.Event, conn *m.Client) {
+func onBetPlaced(msg m.IncomingMessage, conn *m.Client) {
 	amount := msg.Data["amount"].(float64)
 	player := NewPlayer(conn.UserId, conn.Email)
 	gameManager.GetCurrentGame().PlaceBet(player, amount)
 }
 
-func onAuthorizeWsClient(msg m.Event, client *m.Client) {
+func onAuthorizeWsClient(msg m.IncomingMessage, client *m.Client) {
 	defer onClientsUpdate()
 
 	acc := &m.Account{}
