@@ -11,6 +11,14 @@ type GameEvent struct {
 	Amount float64
 }
 
+type WinnerPickedEvent struct {
+	Type string
+	Player *Player
+	Amount float64
+	Ticket int
+	Percentage float64
+}
+
 type CurrentUsersEvent struct {
 	Clients []*m.Client
 }
@@ -24,6 +32,8 @@ func handleGameEvents() {
 		switch e := event.(type) {
 		case GameEvent:
 			genericGameEventHandler(e)
+		case WinnerPickedEvent:
+			winnerPickedEventHandler(e)
 		case CurrentUsersEvent:
 			currentUsersHandler(e.Clients)
 		case CountDownEvent:
@@ -40,6 +50,16 @@ func genericGameEventHandler(event GameEvent) {
 		"amount": event.Amount,
 	}))
 }
+func winnerPickedEventHandler(event WinnerPickedEvent) {
+	SendBroadcast(m.NewEvent(event.Type, map[string]interface{}{
+		"type":   event.Type,
+		"player": event.Player,
+		"amount": event.Amount,
+		"ticket": event.Ticket,
+		"percentage": event.Percentage,
+	}))
+}
+
 
 func currentUsersHandler(clients []*m.Client) {
 	SendBroadcast(m.NewEvent("current-users", map[string]interface{}{

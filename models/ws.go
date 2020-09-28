@@ -15,7 +15,7 @@ func (c *Client) SendMessage(msg interface{}) error {
 }
 
 type Event struct {
-	Type string                 `json:"event"`
+	Type string                 `json:"type"`
 	Data map[string]interface{} `json:"data"`
 }
 

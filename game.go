@@ -137,7 +137,7 @@ func (gm *GameManager) NewGame() {
 func (gm *GameManager) StartGame() {
 	gm.mutex.Lock()
 	defer func() {
-		for d := range u.Countdown(u.NewTicker(time.Second), 30*time.Second) {
+		for d := range u.Countdown(u.NewTicker(time.Second), 5*time.Second) {
 			gm.events <- CountDownEvent{
 				TimeLeft: d.Seconds(),
 			}
@@ -174,7 +174,7 @@ func (gm *GameManager) EndGame() {
 
 	defer func() {
 		log.Println("[GAME] starting new game in 5 seconds...")
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * 20)
 	    gm.NewGame()
 	}()
 }
@@ -267,20 +267,22 @@ func (g *Game) GetWinner()  {
 	g.BetsMutex.Lock()
 	defer g.BetsMutex.Unlock()
 
-	totalTickets := int(math.Round(g.GetTotalPrice()) * 100)
+	totalTickets := math.Round(g.GetTotalPrice()) * 100.0
 
 	randomNr, _ := proof.Calculate()
-	winningTicket := int(randomNr / 100 * float64(totalTickets))
+	winningTicket := int(randomNr / 100.0 * totalTickets)
+	winningPercentage := (100.0 / totalTickets) * (randomNr / 100.0 * totalTickets)
 
 	log.Printf("[GAME] winning ticket: %d", winningTicket)
 
 	for _, userBet := range g.UserBets {
 		if userBet.StartTicket <= winningTicket && userBet.EndTicket >= winningTicket {
 			g.SetState(WinnerPicked)
-			gameManager.events <- GameEvent{
+			gameManager.events <- WinnerPickedEvent{
 				Type:   "winner-picked",
-				Game:   *g,
 				Player: userBet.Player,
+				Ticket: winningTicket,
+			    Percentage: winningPercentage,
 				Amount: g.GetTotalPrice() - userBet.GetTotalBet(),
 			}
 			log.Printf("[GAME]:::The winning userID: %d:::...", userBet.Player.Id)

@@ -37,7 +37,7 @@ func main() {
 
 	log.Printf("Starting HTTP-server on port %s", listenPort)
 	go handleGameEvents()
-	go chat.handleMessages()
+	//go chat.handleMessages()
 	gameManager.NewGame()
 
 	err := app.Listen(listenPort)

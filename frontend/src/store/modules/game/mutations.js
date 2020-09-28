@@ -7,9 +7,5 @@ export default {
   },
   SET_TIME_LEFT(state, time) {
     state.timeLeft = time;
-  },
-  SET_WINNER(state, data) {
-    state.winner.user = data.player;
-    state.winner.amount = data.amount;
   }
 };

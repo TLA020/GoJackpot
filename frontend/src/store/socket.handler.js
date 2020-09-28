@@ -12,12 +12,12 @@ Vue.prototype.$socketEvent = (event, fn) => {
 export default store => {
   store.subscribe(mutation => {
     if (mutation.type === "SOCKET_ONMESSAGE") {
-      const { event, data } = mutation.payload;
-      if (socketEvents[event]) {
-        socketEvents[event].forEach(fn => fn(data));
+      const { type, data } = mutation.payload;
+      if (socketEvents[type]) {
+        socketEvents[type].forEach(fn => fn(data));
       }
 
-      switch (event) {
+      switch (type) {
         case "current-users":
           store.commit("$game/SET_CURRENT_USERS", data.users);
           break;
@@ -39,10 +39,6 @@ export default store => {
           break;
         case "time-left":
           store.commit("$game/SET_TIME_LEFT", data.timeLeft);
-          break;
-        case "winner-picked":
-          store.commit("$game/SET_WINNER", data);
-          store.commit("$game/SET_GAME", data.game);
           break;
         default:
           return;
