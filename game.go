@@ -138,7 +138,7 @@ func (gm *GameManager) NewGame() {
 func (gm *GameManager) StartGame() {
 	gm.mutex.Lock()
 	defer func() {
-		for d := range u.Countdown(u.NewTicker(time.Second), 5*time.Second) {
+		for d := range u.Countdown(u.NewTicker(time.Second), 30*time.Second) {
 			gm.events <- CountDownEvent{
 				TimeLeft: d.Seconds(),
 			}
