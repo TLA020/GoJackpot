@@ -143,6 +143,7 @@ var uploadAvatar = func(ctx *fiber.Ctx) {
 		return
 	}
 
+	// update users avatar in db
 	if err := m.GetDB().Table("accounts").Where("id = ?", userId).Update("avatar", fullPath).Error; err != nil {
 		log.Print(err)
 		ctx.SendStatus(fiber.StatusUnauthorized)

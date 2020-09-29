@@ -109,13 +109,13 @@ export default {
     pool() {
       if (!this.game.userBets) return [];
       return this.game.userBets.map(ub => ({
-        name: ub.player.email,
+        name: ub.player.username || ub.player.email,
         amount: ub.bets
           .map(o => o.amount)
           .reduce((a, c) => {
             return a + c;
           }),
-        avatar: this.getAvatar(ub.player.email || ub.player.id)
+        avatar: this.getAvatar(ub.player.username || ub.player.email || ub.player.id)
       }));
     },
 

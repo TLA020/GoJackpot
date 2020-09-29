@@ -3,10 +3,10 @@ import router from "@/router";
 const API_URL = (process.env.VUE_APP_API_BASE_URL || "/api/v1") + "/accounts";
 
 export default {
-  login({ commit, dispatch }, { email, password }) {
+  login({ commit, dispatch }, { email, password, username }) {
     commit("SET_LOADING", true);
     axios
-      .post(`${API_URL}/login`, { email, password })
+      .post(`${API_URL}/login`, { email, password, username })
       .then(({ data }) => {
         commit("SET_USER", data);
         commit("SET_ERROR", null);
@@ -23,10 +23,10 @@ export default {
       });
   },
 
-  register({ commit, dispatch }, { email, password }) {
+  register({ commit, dispatch }, { email, password, username }) {
     commit("SET_LOADING", true);
     axios
-      .post(`${API_URL}/register`, { email, password })
+      .post(`${API_URL}/register`, { email, password, username })
       .then(({ data }) => {
         commit("SET_USER", data);
         commit("SET_ERROR", null);
