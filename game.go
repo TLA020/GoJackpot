@@ -10,12 +10,13 @@ import (
 )
 
 const gameDuration = 60
+
 var proof *Proof
 
 const (
-	Idle       = 0
-	InProgress = 1
-	Ended      = 2
+	Idle         = 0
+	InProgress   = 1
+	Ended        = 2
 	WinnerPicked = 3
 )
 
@@ -26,9 +27,9 @@ type Game struct {
 	EndTime   time.Time `json:"end_time,omitempty"`
 	Duration  int       `json:"duration"`
 	UserBets  []UserBet `json:"userBets"`
-	State     int        `json:"state"`
+	State     int       `json:"state"`
 
-	BetsMutex *sync.Mutex
+	BetsMutex  *sync.Mutex
 	StateMutex *sync.Mutex
 }
 
@@ -83,11 +84,11 @@ func NewBet(amount float64) *Bet {
 }
 
 type UserBet struct {
-	Bets   []*Bet  `json:"bets"`
-	Player *Player `json:"player"`
-	Share  float64 `json:"share"`
-	StartTicket int `json:"startTicket,omitempty"`
-	EndTicket int `json:"endTicket,omitempty"`
+	Bets        []*Bet  `json:"bets"`
+	Player      *Player `json:"player"`
+	Share       float64 `json:"share"`
+	StartTicket int     `json:"startTicket,omitempty"`
+	EndTicket   int     `json:"endTicket,omitempty"`
 }
 
 func NewUserBet(bet *Bet, player *Player) *UserBet {
@@ -111,14 +112,14 @@ func (gm *GameManager) NewGame() {
 	now := time.Now()
 	gameID := now.UnixNano()
 
-	newGame := &Game {
-		ID:        gameID,
-		NewTime:   now,
-		Duration:  gameDuration,
-		BetsMutex: &sync.Mutex{},
+	newGame := &Game{
+		ID:         gameID,
+		NewTime:    now,
+		Duration:   gameDuration,
+		BetsMutex:  &sync.Mutex{},
 		StateMutex: &sync.Mutex{},
-		UserBets:  make([]UserBet, 0),
-		State: 		Idle,
+		UserBets:   make([]UserBet, 0),
+		State:      Idle,
 	}
 
 	proof, _ = NewProof(nil, nil, gameID)
@@ -164,7 +165,7 @@ func (gm *GameManager) EndGame() {
 
 	gm.currentGame.SetState(Ended)
 
-	gm.events <- GameEvent {
+	gm.events <- GameEvent{
 		Type: "end-game",
 		Game: *gm.currentGame,
 	}
@@ -176,7 +177,7 @@ func (gm *GameManager) EndGame() {
 	defer func() {
 		log.Println("[GAME] starting new game in 5 seconds...")
 		time.Sleep(time.Second * 20)
-	    gm.NewGame()
+		gm.NewGame()
 	}()
 }
 
@@ -187,13 +188,13 @@ func (g *Game) SetState(state int) {
 }
 
 func (g *Game) PlaceBet(player *Player, amount float64) {
- 	log.Printf("[GAME] NEW BET:($%.2f) FROM => Id: %d ", amount, player.Id)
+	log.Printf("[GAME] NEW BET:($%.2f) FROM => Id: %d ", amount, player.Id)
 	g.BetsMutex.Lock()
 
- 	if g.State != InProgress && g.State != Idle {
- 		// betting not allowed in this state
- 		g.BetsMutex.Unlock()
- 		return
+	if g.State != InProgress && g.State != Idle {
+		// betting not allowed in this state
+		g.BetsMutex.Unlock()
+		return
 	}
 
 	bet := NewBet(amount)
@@ -222,7 +223,7 @@ func (g *Game) PlaceBet(player *Player, amount float64) {
 
 	go g.CalculateShares()
 
-    log.Printf("[GAME] TOTAL BETS:($%.2f) ", g.GetTotalPrice())
+	log.Printf("[GAME] TOTAL BETS:($%.2f) ", g.GetTotalPrice())
 
 	if g.StartTime.IsZero() && len(g.UserBets) >= 2 {
 		log.Print("[GAME] Enough players starting game...")
@@ -243,8 +244,8 @@ func (g *Game) CalculateShares() {
 	g.BetsMutex.Lock()
 	defer func() {
 		gameManager.events <- GameEvent{
-			Type:   "shares-updated",
-			Game:   *g,
+			Type: "shares-updated",
+			Game: *g,
 		}
 		g.BetsMutex.Unlock()
 	}()
@@ -264,12 +265,12 @@ func (g *Game) CalculateShares() {
 		ub.EndTicket = startTicket + betInCents
 		ub.Share = (100 / totalCents) * float64(betInCents)
 
-		startTicket += betInCents +1
-	//	log.Printf("[CALC-SHARES] User: %d | StartTicket: %d | EndTicket: %d | Share: %f |", ub.Player.Id, ub.StartTicket, ub.EndTicket, ub.Share)
+		startTicket += betInCents + 1
+		//	log.Printf("[CALC-SHARES] User: %d | StartTicket: %d | EndTicket: %d | Share: %f |", ub.Player.Id, ub.StartTicket, ub.EndTicket, ub.Share)
 	}
 }
 
-func (g *Game) GetWinner()  {
+func (g *Game) GetWinner() {
 	log.Print("[GAME] picking a winner...")
 	g.BetsMutex.Lock()
 	defer g.BetsMutex.Unlock()
@@ -286,10 +287,10 @@ func (g *Game) GetWinner()  {
 		if userBet.StartTicket <= winningTicket && userBet.EndTicket >= winningTicket {
 			g.SetState(WinnerPicked)
 			gameManager.events <- WinnerPickedEvent{
-				Player: userBet.Player,
-				Ticket: winningTicket,
-			    Percentage: winningPercentage,
-				Amount: g.GetTotalPrice() - userBet.GetTotalBet(),
+				Player:     userBet.Player,
+				Ticket:     winningTicket,
+				Percentage: winningPercentage,
+				Amount:     g.GetTotalPrice() - userBet.GetTotalBet(),
 			}
 			log.Printf("[GAME]:::The winning userID: %d:::...", userBet.Player.Id)
 		}

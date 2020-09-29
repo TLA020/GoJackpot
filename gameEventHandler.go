@@ -6,10 +6,10 @@ import (
 
 // generic struct, can be used for multiple game-events, like: new-game
 type GameEvent struct {
-	Type    string  `json:"type"`
-	Game    Game	`json:"game"`
-	Player  *Player	`json:"player"`
-	Amount  float64	`json:"amount"`
+	Type   string  `json:"type"`
+	Game   Game    `json:"game"`
+	Player *Player `json:"player"`
+	Amount float64 `json:"amount"`
 }
 
 func (e GameEvent) GetType() string {
@@ -18,10 +18,10 @@ func (e GameEvent) GetType() string {
 
 // raises when winner picked
 type WinnerPickedEvent struct {
-	Player 		*Player `json:"player"`
-	Amount 		float64 `json:"amount"`
-	Ticket 		int 	`json:"ticket"`
-	Percentage  float64 `json:"percentage"`
+	Player     *Player `json:"player"`
+	Amount     float64 `json:"amount"`
+	Ticket     int     `json:"ticket"`
+	Percentage float64 `json:"percentage"`
 }
 
 func (e WinnerPickedEvent) GetType() string {
@@ -30,8 +30,8 @@ func (e WinnerPickedEvent) GetType() string {
 
 // raised when new bet placed by user
 type BetPlacedEvent struct {
-	Player 		*Player	`json:"player"`
-	Amount 		float64	`json:"amount"`
+	Player *Player `json:"player"`
+	Amount float64 `json:"amount"`
 }
 
 func (e BetPlacedEvent) GetType() string {
@@ -61,5 +61,3 @@ func handleGameEvents() {
 		SendBroadcast(event)
 	}
 }
-
-

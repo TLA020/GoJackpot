@@ -10,7 +10,9 @@ import (
 type Account struct {
 	gorm.Model
 	Email    string `json:"email"`
+	Username string `json:"username"`
 	Password string `json:"password"`
+	Avatar   string `json:"avatar"`
 	Token    string `json:"token" sql:"-"`
 }
 
@@ -21,6 +23,11 @@ func (account *Account) Validate() (err error) {
 		return
 	}
 
+	if account.Username == "" {
+		err = fmt.Errorf("username is required")
+		return
+	}
+
 	if len(account.Password) < 6 {
 		err = fmt.Errorf("required and at least 6 chars")
 		return
@@ -28,7 +35,7 @@ func (account *Account) Validate() (err error) {
 
 	var occurrences = 0
 	// check if mail unique
-	err = GetDB().Table("accounts").Where("email = ?", account.Email).Count(&occurrences).Error
+	err = GetDB().Table("accounts").Where("email = ? OR username = ?", account.Email, account.Username).Count(&occurrences).Error
 
 	if err != nil && err != gorm.ErrRecordNotFound {
 		err = fmt.Errorf("connection error")
@@ -36,7 +43,7 @@ func (account *Account) Validate() (err error) {
 	}
 
 	if occurrences > 0 {
-		err = fmt.Errorf("address already in use by another user")
+		err = fmt.Errorf("mail or username already exists")
 		return
 	}
 	return

@@ -22,8 +22,8 @@ type Proof struct {
 	ClientSeed        []byte
 	ServerSeed        []byte
 	BlindedServerSeed []byte
-	Nonce int64
-	Lock sync.Mutex
+	Nonce             int64
+	Lock              sync.Mutex
 }
 
 func (p *Proof) LogState() {
@@ -77,7 +77,7 @@ func (p *Proof) Roll() (float64, error) {
 	}
 
 	// Increment the nonce for next time
-	p.Nonce ++
+	p.Nonce++
 	return roll, nil
 }
 
@@ -150,4 +150,3 @@ func newSeed(size int) []byte {
 	}
 	return buf
 }
-

@@ -13,6 +13,7 @@ import (
 
 var stopChan = make(chan bool)
 var gameManager = NewGameManager()
+
 //var chat = NewChat()
 
 func main() {
@@ -68,6 +69,8 @@ func setupRoutes(app *fiber.App) {
 	app.Use(jwtware.New(jwtware.Config{
 		SigningKey: []byte(secret),
 	}))
+
+	app.Post("api/v1/accounts/avatar", uploadAvatar)
 
 	app.Get("/restricted", func(c *fiber.Ctx) {
 		// test endpoint

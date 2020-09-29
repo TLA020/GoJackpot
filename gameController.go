@@ -14,7 +14,7 @@ var testGame = func(c *fiber.Ctx) {
 
 func launchTestGame() {
 	for i := 0; i < 3; i++ {
-		fakeBetByUserId(rand.Int() *20 +5)
+		fakeBetByUserId(rand.Int()*20 + 5)
 	}
 }
 

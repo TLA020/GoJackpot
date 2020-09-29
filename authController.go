@@ -1,12 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber"
 	"golang.org/x/crypto/bcrypt"
 	m "goprac/models"
 	"log"
+	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -94,6 +97,7 @@ func createTokenByAccount(acc *m.Account) (signedToken string, err error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["email"] = acc.Email
+	claims["username"] = acc.Username
 	claims["sub"] = acc.ID
 	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
 
@@ -104,4 +108,47 @@ func createTokenByAccount(acc *m.Account) (signedToken string, err error) {
 	// Generate encoded token (sign)
 	signedToken, err = token.SignedString([]byte(secret))
 	return
+}
+
+var uploadAvatar = func(ctx *fiber.Ctx) {
+	const avatarPath = "uploads/avatars"
+
+	// get user uploading avatar from claims
+	user := ctx.Locals("user").(*jwt.Token)
+	claims := user.Claims.(jwt.MapClaims)
+	username := claims["username"].(string)
+	userId := claims["sub"].(float64)
+
+	multipartFileHeader, _ := ctx.FormFile("avatar")
+	allowed := []string{"image/jpeg", "image/jpg", "image/png"}
+
+	// validate by allowed mimetypes
+	if !validateFile(multipartFileHeader, allowed) {
+		log.Print("filetype not allowed")
+		ctx.Status(http.StatusBadRequest).Send("invalid file type")
+		return
+	}
+
+	// this ensures folder exist.
+	if _, err := os.Stat(avatarPath); os.IsNotExist(err) {
+		_ = os.MkdirAll(avatarPath, os.ModePerm)
+	}
+
+	// create / overwrite avatar
+	extension := filepath.Ext(multipartFileHeader.Filename)
+	fullPath := fmt.Sprintf("%s/%s%s", avatarPath, username, extension)
+	if err := ctx.SaveFile(multipartFileHeader, fullPath); err != nil {
+		log.Print(err)
+		ctx.Status(http.StatusInternalServerError).Send("err saving file")
+		return
+	}
+
+	if err := m.GetDB().Table("accounts").Where("id = ?", userId).Update("avatar", fullPath).Error; err != nil {
+		log.Print(err)
+		ctx.SendStatus(fiber.StatusUnauthorized)
+		ctx.Send("looks like this account doesn't exist")
+		return
+	}
+
+	ctx.SendStatus(fiber.StatusAccepted)
 }

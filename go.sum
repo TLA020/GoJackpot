@@ -71,6 +71,8 @@ github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5Kwzbycv
 github.com/fatih/color v1.9.0/go.mod h1:eQcE1qtQxscV5RaZvpXrrb8Drkc3/DdQ+uUYCNjL+zU=
 github.com/flosch/pongo2 v0.0.0-20200529170236-5abacdfa4915/go.mod h1:fB4mx6dzqFinCxIf3a7Mf5yLk+18Bia9mPAnuejcvDA=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
+github.com/gabriel-vasile/mimetype v1.1.1 h1:qbN9MPuRf3bstHu9zkI9jDWNfH//9+9kHxr9oRBBBOA=
+github.com/gabriel-vasile/mimetype v1.1.1/go.mod h1:6CDPel/o/3/s4+bp6kIbsWATq8pmgOisOPG40CJa6To=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-check/check v0.0.0-20180628173108-788fd7840127/go.mod h1:9ES+weclKsC9YodN5RgxqK/VD9HM9JsCSh7rNhMZE98=
 github.com/go-critic/go-critic v0.5.0/go.mod h1:4jeRh3ZAVnRYhuWdOEvwzVqLUpxMSoAT0xZ74JsTPlo=
@@ -497,6 +499,7 @@ golang.org/x/tools v0.0.0-20200422022333-3d57cf2e726e/go.mod h1:EkVYQZoAsY45+roY
 golang.org/x/tools v0.0.0-20200428185508-e9a00ec82136/go.mod h1:EkVYQZoAsY45+roYkvgYkIh4xh/qjgUK9TdY2XT94GE=
 golang.org/x/tools v0.0.0-20200519015757-0d0afa43d58a/go.mod h1:EkVYQZoAsY45+roYkvgYkIh4xh/qjgUK9TdY2XT94GE=
 golang.org/x/tools v0.0.0-20200625211823-6506e20df31f/go.mod h1:EkVYQZoAsY45+roYkvgYkIh4xh/qjgUK9TdY2XT94GE=
+golang.org/x/tools v0.0.0-20200702044944-0cc1aa72b347 h1:/e4fNMHdLn7SQSxTrRZTma2xjQW6ELdxcnpqMhpo9X4=
 golang.org/x/tools v0.0.0-20200702044944-0cc1aa72b347/go.mod h1:EkVYQZoAsY45+roYkvgYkIh4xh/qjgUK9TdY2XT94GE=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=

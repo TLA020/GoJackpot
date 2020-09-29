@@ -15,7 +15,7 @@ type Event interface {
 }
 
 func (c *Client) SendMessage(event Event) error {
-	msg := map[string]interface{} {
+	msg := map[string]interface{}{
 		"type": event.GetType(),
 		"data": event,
 	}
@@ -32,7 +32,3 @@ type WsAuthRequest struct {
 	Name string  `json:"name"`
 	Data Account `json:"data"`
 }
-
-
-
-
