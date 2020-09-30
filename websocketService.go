@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/websocket"
 	"github.com/mitchellh/mapstructure"
 	m "goprac/models"
+	"goprac/utils"
 	"log"
 	"sync"
 )
@@ -132,9 +133,12 @@ func onAuthorizeWsClient(msg m.IncomingMessage, client *m.Client) {
 		log.Print(err)
 	}
 
+	if utils.KeyExists(claims, "username") && utils.KeyExists(claims, "avatar") {
+		client.Username = claims["username"].(string)
+		client.Avatar = claims["avatar"].(string)
+	}
+
 	client.UserId = int(claims["sub"].(float64))
-	client.Username = claims["username"].(string)
-	client.Avatar = claims["avatar"].(string)
 	client.Email = claims["email"].(string)
 
 	// game snapshot
@@ -149,6 +153,8 @@ func onAuthorizeWsClient(msg m.IncomingMessage, client *m.Client) {
 
 	log.Printf("[WS] Client now belongs to: %v", client.Username)
 }
+
+
 
 func SendBroadcast(event m.Event) {
 	broadcast <- event
