@@ -2,12 +2,16 @@ package models
 
 import (
 	"github.com/gofiber/websocket"
+	"sync"
 )
 
 type Client struct {
 	Conn   *websocket.Conn `json:"conn,omitempty"`
 	UserId int
+	Username string
+	Avatar string
 	Email  string
+	Mutex sync.Mutex
 }
 
 type Event interface {
@@ -15,6 +19,9 @@ type Event interface {
 }
 
 func (c *Client) SendMessage(event Event) error {
+	c.Mutex.Lock()
+	defer c.Mutex.Unlock()
+
 	msg := map[string]interface{}{
 		"type": event.GetType(),
 		"data": event,

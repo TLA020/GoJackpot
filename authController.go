@@ -98,6 +98,7 @@ func createTokenByAccount(acc *m.Account) (signedToken string, err error) {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["email"] = acc.Email
 	claims["username"] = acc.Username
+	claims["avatar"] = acc.Avatar
 	claims["sub"] = acc.ID
 	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
 

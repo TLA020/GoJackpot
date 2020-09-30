@@ -1,4 +1,5 @@
 export default {
+  chatMessages: [],
   currentUsers: [],
   game: {},
   winner: {

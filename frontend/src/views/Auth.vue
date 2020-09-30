@@ -25,7 +25,7 @@
                 label="Username"
                 type="text"
                 v-model="username"
-                :rules="username"
+                :rules="usernameRules"
                 required
               >
               </v-text-field>

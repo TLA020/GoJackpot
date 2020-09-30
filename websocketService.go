@@ -52,7 +52,7 @@ func runHub() {
 
 func wsHandler(c *websocket.Conn) {
 	log.Printf("[WS] New connection")
-	var client = &m.Client{Conn: c}
+	var client = &m.Client{Conn: c, Mutex: sync.Mutex{}}
 
 	register <- client
 	listener(client)
@@ -85,30 +85,30 @@ func onClientsUpdate() {
 	}
 }
 
-func handleMessages(client *m.Client, msg []byte) {
-	event := m.IncomingMessage{}
-	if err := json.Unmarshal(msg, &event); err != nil {
+func handleMessages(client *m.Client, message []byte) {
+	msg := m.IncomingMessage{}
+	if err := json.Unmarshal(message, &msg); err != nil {
 		log.Print(err)
 		return
 	}
 
 	// temp move to event handler.
-	switch event.Type {
+	switch msg.Type {
 	case "auth":
-		onAuthorizeWsClient(event, client)
+		onAuthorizeWsClient(msg, client)
 	case "place-bet":
-		onBetPlaced(event, client)
-	//case "chat-message":
-	//	handleChatMsg(event, client)
+		onBetPlaced(msg, client)
+	case "chat-message":
+		handleChatMsg(msg, client)
 	default:
 		log.Printf("default")
 	}
 }
 
-//func handleChatMsg(e m.Event, c *m.Client) {
-//	msg := NewMessage(e.Data["Message"].(string), c.Email, c.Email) // twice email because username not yet implemented
-//	chat.incoming <- msg
-//}
+func handleChatMsg(e m.IncomingMessage, c *m.Client) {
+	msg := NewMessage(e.Data["message"].(string), c.Username, c.Avatar)
+	chat.incoming <- msg
+}
 
 func onBetPlaced(msg m.IncomingMessage, conn *m.Client) {
 	amount := msg.Data["amount"].(float64)
@@ -133,14 +133,21 @@ func onAuthorizeWsClient(msg m.IncomingMessage, client *m.Client) {
 	}
 
 	client.UserId = int(claims["sub"].(float64))
+	client.Username = claims["username"].(string)
+	client.Avatar = claims["avatar"].(string)
 	client.Email = claims["email"].(string)
 
+	// game snapshot
 	gameManager.events <- GameEvent{
 		Type: "current-game",
 		Game: *gameManager.GetCurrentGame(),
 	}
 
-	log.Printf("[WS] Client now belongs to userId: %v", client.UserId)
+	// chat snapshot
+	chatSnapshot := ChatSnapshot{ Messages: chat.Messages }
+	_ = client.SendMessage(chatSnapshot)
+
+	log.Printf("[WS] Client now belongs to: %v", client.Username)
 }
 
 func SendBroadcast(event m.Event) {

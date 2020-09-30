@@ -8,12 +8,12 @@
       <v-list>
         <template v-for="(item, index) in items">
           <v-list-item :key="index">
-            <v-list-item-avatar>
+            <v-list-item-avatar v-show="item.avatar">
               <v-img :src="item.avatar"></v-img>
             </v-list-item-avatar>
             <v-list-item-content>
               <v-list-item-title v-html="item.userName"></v-list-item-title>
-              <p class="text--secondary subtitle-2">{{ item.message }}</p>
+              <p class="text--secondary subtitle-2">{{ item.msg }}</p>
             </v-list-item-content>
           </v-list-item>
           <v-divider :key="index + 10" :inset="item.inset"></v-divider>
@@ -21,37 +21,51 @@
       </v-list>
     </div>
 
-    <v-text-field placeholder="..." class="ml-1 mr-1"></v-text-field>
+    <v-footer fixed>
+      <v-row no-gutters>
+        <v-col cols="8">
+          <v-text-field
+            placeholder="enter message"
+            class="ml-1 mr-4"
+            @keyup.enter="sendChat"
+            v-model="message"
+          ></v-text-field>
+        </v-col>
+        <v-col cols="4">
+          <v-btn class="mt-4" @click="sendChat"><v-icon>mdi-send</v-icon></v-btn>
+        </v-col>
+      </v-row>
+    </v-footer>
   </div>
 </template>
 <script>
+import Vue from "vue";
+
 export default {
   name: "Chat",
+  mounted() {
+    this.$socketEvent("chat-message", res => {
+      this.items.push(res);
+    });
+
+    this.$socketEvent("chat-snapshot", res => {
+      this.items = res.messages;
+    });
+  },
+
   data: () => ({
-    items: [
-      {
-        avatar: "https://api.adorable.io/avatars/64/",
-        userName: "Darkangel_1337",
-        message: "scared as fuck huh?"
-      },
-      {
-        avatar:
-          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/48/4830c1e5abc9cc8d8b02ec9679de7346e9514ef4_medium.jpg",
-        userName: "TTV/xBrenni",
-        message: "still wait since 1 year for the dc call pog"
-      },
-      {
-        avatar: "https://api.adorable.io/avatars/64/5",
-        userName: "LIVE|Pret0xX",
-        message: "gogogo start bets"
-      },
-      {
-        avatar:
-          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/48/4830c1e5abc9cc8d8b02ec9679de7346e9514ef4_medium.jpg",
-        userName: "TTV/xBrenni",
-        message: "lol wtf go all in then pussy"
-      }
-    ]
-  })
+    items: [],
+    message: ""
+  }),
+
+  methods: {
+    sendChat() {
+      Vue.$socket.sendObj({
+        type: "chat-message",
+        data: { message: this.message }
+      });
+      this.message = "";
+    }
+  }
 };
 </script>

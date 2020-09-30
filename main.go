@@ -14,7 +14,7 @@ import (
 var stopChan = make(chan bool)
 var gameManager = NewGameManager()
 
-//var chat = NewChat()
+var chat = NewChat()
 
 func main() {
 	app := fiber.New()
@@ -38,7 +38,7 @@ func main() {
 
 	log.Printf("Starting HTTP-server on port %s", listenPort)
 	go handleGameEvents()
-	//go chat.handleMessages()
+	go handleChatMessages()
 	gameManager.NewGame()
 
 	err := app.Listen(listenPort)
@@ -52,6 +52,7 @@ func main() {
 func setupRoutes(app *fiber.App) {
 	app.Static("/", "./frontend/dist/index.html")
 	app.Static("/static", "./frontend/dist/static")
+	app.Static("/uploads", "./uploads")
 
 	app.Get("/ws/", websocket.New(func(c *websocket.Conn) {
 		wsHandler(c)
