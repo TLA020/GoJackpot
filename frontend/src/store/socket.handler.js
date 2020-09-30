@@ -1,4 +1,5 @@
 import Vue from "vue";
+import router from "@/router";
 
 const socketEvents = {};
 
@@ -39,6 +40,11 @@ export default store => {
           break;
         case "time-left":
           store.commit("$game/SET_TIME_LEFT", data.timeLeft);
+          break;
+        case "invalid-user":
+          localStorage.setItem("user", JSON.stringify(data));
+          store.commit("$auth/SET_USER", null);
+          router.push("/auth");
           break;
         default:
           return;

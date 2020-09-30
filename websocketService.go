@@ -133,11 +133,16 @@ func onAuthorizeWsClient(msg m.IncomingMessage, client *m.Client) {
 		log.Print(err)
 	}
 
-	if utils.KeyExists(claims, "username") && utils.KeyExists(claims, "avatar") {
-		client.Username = claims["username"].(string)
-		client.Avatar = claims["avatar"].(string)
+	if !utils.KeyExists(claims, "username") || !utils.KeyExists(claims, "avatar") {
+		// temp
+		gameManager.events <- GameEvent {
+			Type: "invalid-user",
+		}
+		return
 	}
 
+	client.Username = claims["username"].(string)
+	client.Avatar = claims["avatar"].(string)
 	client.UserId = int(claims["sub"].(float64))
 	client.Email = claims["email"].(string)
 
