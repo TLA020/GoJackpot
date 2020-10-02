@@ -113,7 +113,7 @@ func handleChatMsg(e m.IncomingMessage, c *m.Client) {
 
 func onBetPlaced(msg m.IncomingMessage, conn *m.Client) {
 	amount := msg.Data["amount"].(float64)
-	player := NewPlayer(conn.UserId, conn.Email)
+	player := NewPlayer(conn.UserId, conn.Username, conn.Avatar)
 	gameManager.GetCurrentGame().PlaceBet(player, amount)
 }
 
@@ -135,7 +135,7 @@ func onAuthorizeWsClient(msg m.IncomingMessage, client *m.Client) {
 
 	if !utils.KeyExists(claims, "username") || !utils.KeyExists(claims, "avatar") {
 		// temp
-		gameManager.events <- GameEvent {
+		gameManager.events <- GameEvent{
 			Type: "invalid-user",
 		}
 		return
@@ -153,13 +153,11 @@ func onAuthorizeWsClient(msg m.IncomingMessage, client *m.Client) {
 	}
 
 	// chat snapshot
-	chatSnapshot := ChatSnapshot{ Messages: chat.Messages }
+	chatSnapshot := ChatSnapshot{Messages: chat.Messages}
 	_ = client.SendMessage(chatSnapshot)
 
 	log.Printf("[WS] Client now belongs to: %v", client.Username)
 }
-
-
 
 func SendBroadcast(event m.Event) {
 	broadcast <- event

@@ -6,12 +6,12 @@ import (
 )
 
 type Client struct {
-	Conn   *websocket.Conn `json:"conn,omitempty"`
-	UserId int
+	Conn     *websocket.Conn `json:"conn,omitempty"`
+	UserId   int
 	Username string
-	Avatar string
-	Email  string
-	Mutex sync.Mutex
+	Avatar   string
+	Email    string
+	Mutex    sync.Mutex
 }
 
 type Event interface {

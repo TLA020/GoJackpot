@@ -1,6 +1,8 @@
+import User from "../../../models/user";
+
 export default {
   SET_USER(state, payload) {
-    state.user = payload;
+    state.user = new User(payload);
   },
   REMOVE_USER(state) {
     state.user = null;
@@ -14,4 +16,4 @@ export default {
   SET_LOADING(state, payload) {
     state.loading = payload;
   }
-}
+};

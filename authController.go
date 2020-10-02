@@ -30,6 +30,7 @@ var signUp = func(c *fiber.Ctx) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(account.Password), bcrypt.DefaultCost)
 	account.Password = string(hashedPassword)
 
+	account.Avatar = fmt.Sprintf("https://avatars.dicebear.com/api/male/%s.svg", account.Username)
 	m.GetDB().Create(account)
 
 	if account.ID <= 0 {
@@ -118,6 +119,7 @@ var uploadAvatar = func(ctx *fiber.Ctx) {
 	user := ctx.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 	username := claims["username"].(string)
+	log.Print(username)
 	userId := claims["sub"].(float64)
 
 	multipartFileHeader, _ := ctx.FormFile("avatar")
@@ -152,5 +154,24 @@ var uploadAvatar = func(ctx *fiber.Ctx) {
 		return
 	}
 
-	ctx.SendStatus(fiber.StatusAccepted)
+	response := &m.Account{}
+	if err := m.GetDB().Table("accounts").Where("id = ?", userId).First(response).Error; err != nil {
+		log.Print(err)
+		ctx.Status(http.StatusInternalServerError).Send("err getting updated account")
+		return
+	}
+
+	token, err := createTokenByAccount(response)
+	if err != nil {
+		ctx.Status(fiber.StatusInternalServerError).Send("unable to create new token")
+		return
+	}
+
+	response.Token = token
+	response.Password = ""
+	response.Avatar = fmt.Sprintf("%s?stamp=%d", response.Avatar, time.Now().UnixNano())
+
+	if err := ctx.JSON(response); err != nil {
+		log.Print(err)
+	}
 }

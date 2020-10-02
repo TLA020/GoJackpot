@@ -61,13 +61,15 @@ func (gm *GameManager) Events() chan m.Event {
 
 type Player struct {
 	Id    int    `json:"id"`
-	Email string `json:"email"`
+	Username string `json:"email"`
+	Avatar string `json:"avatar"`
 }
 
-func NewPlayer(uid int, email string) *Player {
+func NewPlayer(uid int, username string, avatar string) *Player {
 	return &Player{
 		Id:    uid,
-		Email: email,
+		Username: username,
+		Avatar: avatar,
 	}
 }
 

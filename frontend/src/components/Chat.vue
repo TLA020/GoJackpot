@@ -1,10 +1,9 @@
 <template>
-  <div>
+  <div >
     <div>
       <v-toolbar color="grey darken-4" dark>
-        <v-icon class="ml-2">mdi-account-group</v-icon> 12 online
+        <v-icon class="ml-2 mr-1">mdi-account-group</v-icon> Chat
       </v-toolbar>
-
       <v-list>
         <template v-for="(item, index) in items">
           <v-list-item :key="index">

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber"
 	"github.com/goombaio/namegenerator"
 	"math/rand"
@@ -23,6 +24,6 @@ func fakeBetByUserId(userId int) {
 	fakeBet := (rand.Float64() * 100) + 5
 	seed := time.Now().UTC().UnixNano()
 	nameGenerator := namegenerator.NewNameGenerator(seed)
-	fakePlayer := NewPlayer(userId, nameGenerator.Generate())
+	fakePlayer := NewPlayer(userId, nameGenerator.Generate(), fmt.Sprintf("https://avatars.dicebear.com/api/male/%s.svg", nameGenerator.Generate()))
 	gameManager.GetCurrentGame().PlaceBet(fakePlayer, fakeBet)
 }

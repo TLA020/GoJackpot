@@ -2,6 +2,7 @@ import Vue from "vue";
 import Router from "vue-router";
 // import Home from "../views/Home";
 import Auth from "../views/Auth";
+import UserProfile from "../views/UserProfile";
 import Jackpot from "../views/Jackpot";
 import store from "../store";
 
@@ -29,6 +30,14 @@ const router = new Router({
       path: "/",
       name: "jackpot",
       component: Jackpot,
+      meta: {
+        authRequired: true
+      }
+    },
+    {
+      path: "/account/edit",
+      name: "userProfile",
+      component: UserProfile,
       meta: {
         authRequired: true
       }

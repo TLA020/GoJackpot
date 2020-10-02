@@ -6,9 +6,9 @@ import (
 
 type Message struct {
 	UserName string `json:"userName"`
-	Email string `json:"email"`
-	Msg string `json:"msg"`
-	Avatar string `json:"avatar"`
+	Email    string `json:"email"`
+	Msg      string `json:"msg"`
+	Avatar   string `json:"avatar"`
 }
 
 func (m Message) GetType() string {
@@ -24,24 +24,24 @@ func (c ChatSnapshot) GetType() string {
 }
 
 func NewMessage(msg string, username string, avatar string) *Message {
-	return &Message {
-		Msg: msg,
+	return &Message{
+		Msg:      msg,
 		UserName: username,
-		Avatar: avatar,
+		Avatar:   avatar,
 	}
 }
 
 type Chat struct {
-	Mutex         sync.Mutex
-	Messages      []Message `json:"messages"`
-	incoming      chan *Message
+	Mutex    sync.Mutex
+	Messages []Message `json:"messages"`
+	incoming chan *Message
 }
 
 func NewChat() *Chat {
 	return &Chat{
-		Mutex:     	  sync.Mutex{},
-		Messages:     make([]Message, 0),
-		incoming: 	  make(chan *Message),
+		Mutex:    sync.Mutex{},
+		Messages: make([]Message, 0),
+		incoming: make(chan *Message),
 	}
 }
 
@@ -65,7 +65,3 @@ func handleChatMessages() {
 func (m *Message) broadcast() {
 	broadcast <- m
 }
-
-
-
-

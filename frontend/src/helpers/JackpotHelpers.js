@@ -65,7 +65,7 @@ export function resetEase(t) {
   return t * (2 - t);
 }
 
-export function createRoundedImage(src) {
+export function createRoundedImage(src, width = 64, height = 64) {
   return new Promise(resolve => {
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
@@ -74,16 +74,16 @@ export function createRoundedImage(src) {
     image.src = src;
 
     image.onload = () => {
-      canvas.width = image.width;
-      canvas.height = image.height;
+      canvas.width = width;
+      canvas.height = height;
 
       context.save();
       context.beginPath();
-      context.arc(image.width * 0.5, image.width * 0.5, image.width * 0.5, 0, Math.PI * 2, true);
+      context.arc(width * 0.5, height * 0.5, width * 0.5, 0, Math.PI * 2, true);
       context.closePath();
       context.clip();
 
-      context.drawImage(image, 0, 0, image.width, image.height);
+      context.drawImage(image, 0, 0, width, height);
 
       context.beginPath();
       context.arc(0, 0, 2, 0, Math.PI * 2, true);

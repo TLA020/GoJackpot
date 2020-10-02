@@ -1,5 +1,5 @@
 export default {
-  user: null,
+  user: undefined,
   authenticated: false,
   error: "",
   loading: false

@@ -30,7 +30,7 @@
             <v-row align="center" class="spacer" no-gutters>
               <v-col cols="2">
                 <v-avatar size="36px">
-                  <img alt="Avatar" :src="getAvatar(userBet.player.email)" />
+                  <img alt="Avatar" :src="getAvatar(userBet.player.avatar)" />
                 </v-avatar>
               </v-col>
 
@@ -91,7 +91,10 @@ export default {
 
   methods: {
     getAvatar(x) {
-      return `https://api.adorable.io/avatars/64/${x}`;
+      if (process.env.VUE_APP_DEVELOPMENT === "1" && !x.includes("bear")) {
+        return "http://localhost:5001/" + x
+      }
+      return x
     },
 
     onStopped() {
@@ -115,7 +118,7 @@ export default {
           .reduce((a, c) => {
             return a + c;
           }),
-        avatar: this.getAvatar(ub.player.username || ub.player.email || ub.player.id)
+        avatar: this.getAvatar(ub.player.avatar)
       }));
     },
 
