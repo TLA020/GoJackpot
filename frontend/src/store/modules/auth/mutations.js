@@ -3,6 +3,7 @@ import User from "../../../models/user";
 export default {
   SET_USER(state, payload) {
     state.user = new User(payload);
+    localStorage.setItem("user", JSON.stringify(state.user));
   },
   REMOVE_USER(state) {
     state.user = null;

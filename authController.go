@@ -139,7 +139,7 @@ var uploadAvatar = func(ctx *fiber.Ctx) {
 
 	// create / overwrite avatar
 	extension := filepath.Ext(multipartFileHeader.Filename)
-	fullPath := fmt.Sprintf("%s/%s%s", avatarPath, username, extension)
+	fullPath := fmt.Sprintf("%s/%s%d%s", avatarPath, username, time.Now().UnixNano(), extension)
 	if err := ctx.SaveFile(multipartFileHeader, fullPath); err != nil {
 		log.Print(err)
 		ctx.Status(http.StatusInternalServerError).Send("err saving file")
@@ -169,7 +169,6 @@ var uploadAvatar = func(ctx *fiber.Ctx) {
 
 	response.Token = token
 	response.Password = ""
-	response.Avatar = fmt.Sprintf("%s?stamp=%d", response.Avatar, time.Now().UnixNano())
 
 	if err := ctx.JSON(response); err != nil {
 		log.Print(err)
