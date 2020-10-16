@@ -1,6 +1,7 @@
 package main
 
 import (
+	crypto "github.com/TLA020/go_marketcap-client"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/cors"
 	"github.com/gofiber/fiber"
@@ -61,6 +62,21 @@ func setupRoutes(app *fiber.App) {
 	app.Post("/api/v1/accounts/register", signUp)
 	app.Post("/api/v1/accounts/login", signIn)
 	app.Post("/api/v1/game/test/bets/random", testGame)
+
+	// temp
+	app.Get("api/v1/crypto", func(c *fiber.Ctx) {
+		symbol := c.Query("symbol")
+		res, err := crypto.GetCryptoPrice(symbol)
+
+		if err != nil {
+			log.Print(err)
+			c.Status(fiber.StatusInternalServerError).Send(err)
+			return
+		}
+
+		_ = c.JSON(res)
+	})
+
 	// after this middleware only authorized routes.
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
